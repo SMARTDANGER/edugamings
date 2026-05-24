@@ -39,10 +39,22 @@ html, body {
 }
 
 body {
-  background: linear-gradient(135deg, var(--bg-gradient-a) 0%, var(--bg-gradient-b) 100%);
+  background:
+    radial-gradient(circle at 15% 10%, hsla(calc(var(--spectrum-hue) + 30), 70%, 85%, 0.55) 0%, transparent 50%),
+    radial-gradient(circle at 85% 90%, hsla(calc(var(--spectrum-hue) + 120), 70%, 85%, 0.55) 0%, transparent 50%),
+    linear-gradient(135deg, var(--bg-gradient-a) 0%, var(--bg-gradient-b) 100%);
+  background-size: 200% 200%, 200% 200%, 100% 100%;
+  background-position: 0% 0%, 100% 100%, 0% 0%;
+  animation: bg-drift 28s ease-in-out infinite alternate;
   min-height: 100vh;
   min-height: 100dvh;
   color: var(--color-text);
+}
+
+@keyframes bg-drift {
+  0%   { background-position:   0% 0%, 100% 100%, 0% 0%; }
+  50%  { background-position: 100% 50%,   0%  50%, 0% 0%; }
+  100% { background-position:  50% 100%,  50%   0%, 0% 0%; }
 }
 
 #particle-canvas {
@@ -140,6 +152,26 @@ body {
   justify-content: center;
 }
 
+.mascot-container::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(5rem, 22vw, 9rem);
+  height: clamp(5rem, 22vw, 9rem);
+  border-radius: 50%;
+  background: radial-gradient(circle, hsla(var(--spectrum-hue), 90%, 75%, 0.45) 0%, transparent 65%);
+  transform: translate(-50%, -50%);
+  animation: mascot-halo 4s ease-in-out infinite;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@keyframes mascot-halo {
+  0%, 100% { transform: translate(-50%, -50%) scale(1);   opacity: 0.6; }
+  50%      { transform: translate(-50%, -50%) scale(1.2); opacity: 1;   }
+}
+
 .mascot {
   font-size: clamp(3rem, 12vw, 5rem);
   display: block;
@@ -150,8 +182,11 @@ body {
 }
 
 @keyframes mascot-float {
-  0%, 100% { transform: translateY(0) rotate(-2deg); }
-  50% { transform: translateY(-10px) rotate(2deg); }
+  0%   { transform: translateY(0)    rotate(-4deg) scale(1);    }
+  25%  { transform: translateY(-6px) rotate(2deg)  scale(1.04); }
+  50%  { transform: translateY(-12px) rotate(4deg) scale(1.06); }
+  75%  { transform: translateY(-6px) rotate(-2deg) scale(1.04); }
+  100% { transform: translateY(0)    rotate(-4deg) scale(1);    }
 }
 
 .mascot.sparkle {
@@ -179,46 +214,145 @@ body {
 
 .game-card {
   position: relative;
-  background: var(--color-primary);
+  background:
+    linear-gradient(135deg,
+      hsla(0, 0%, 100%, 0.35) 0%,
+      hsla(0, 0%, 100%, 0) 45%),
+    linear-gradient(160deg,
+      var(--color-primary) 0%,
+      hsl(var(--spectrum-hue), 80%, 50%) 100%);
   border: 3px solid var(--color-secondary);
-  border-radius: 24px;
+  border-radius: 26px;
   padding: 20px 12px 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 16px hsla(var(--spectrum-hue), 60%, 40%, 0.3);
+  box-shadow:
+    0 6px 20px hsla(var(--spectrum-hue), 60%, 40%, 0.35),
+    inset 0 2px 0 hsla(0, 0%, 100%, 0.4),
+    inset 0 -3px 8px hsla(var(--spectrum-hue), 60%, 25%, 0.25);
   transition:
-    transform 0.15s ease,
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
     background-color 4s ease,
     border-color 4s ease,
     box-shadow 4s ease !important;
   min-height: 120px;
   justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
+  animation:
+    card-enter 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) backwards,
+    card-breathe 5s ease-in-out infinite;
+}
+
+.game-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg,
+    transparent 35%,
+    hsla(0, 0%, 100%, 0.45) 50%,
+    transparent 65%);
+  transform: translateX(-110%);
+  animation: card-shine 5.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .game-card:active {
-  transform: scale(0.94);
+  transform: scale(0.92) rotate(-1deg);
+  box-shadow:
+    0 2px 8px hsla(var(--spectrum-hue), 60%, 40%, 0.3),
+    inset 0 2px 0 hsla(0, 0%, 100%, 0.4);
 }
 
-.game-card:nth-child(2) { background: var(--color-secondary); border-color: var(--color-accent); }
-.game-card:nth-child(3) { background: var(--color-accent); border-color: var(--color-warm); }
-.game-card:nth-child(4) { background: var(--color-warm); border-color: var(--color-soft); }
-.game-card:nth-child(5) { background: var(--color-soft); border-color: var(--color-deep); }
-.game-card:nth-child(6) { background: var(--color-deep); border-color: var(--color-primary); }
+.game-card:nth-child(1) { animation-delay: 0.00s, 0.8s; }
+.game-card:nth-child(2) {
+  background:
+    linear-gradient(135deg, hsla(0, 0%, 100%, 0.35) 0%, hsla(0, 0%, 100%, 0) 45%),
+    linear-gradient(160deg, var(--color-secondary) 0%, hsl(calc(var(--spectrum-hue) + 40), 75%, 55%) 100%);
+  border-color: var(--color-accent);
+  animation-delay: 0.07s, 1.2s;
+}
+.game-card:nth-child(3) {
+  background:
+    linear-gradient(135deg, hsla(0, 0%, 100%, 0.35) 0%, hsla(0, 0%, 100%, 0) 45%),
+    linear-gradient(160deg, var(--color-accent) 0%, hsl(calc(var(--spectrum-hue) + 80), 85%, 45%) 100%);
+  border-color: var(--color-warm);
+  animation-delay: 0.14s, 1.6s;
+}
+.game-card:nth-child(4) {
+  background:
+    linear-gradient(135deg, hsla(0, 0%, 100%, 0.35) 0%, hsla(0, 0%, 100%, 0) 45%),
+    linear-gradient(160deg, var(--color-warm) 0%, hsl(calc(var(--spectrum-hue) + 120), 70%, 50%) 100%);
+  border-color: var(--color-soft);
+  animation-delay: 0.21s, 2.0s;
+}
+.game-card:nth-child(5) {
+  background:
+    linear-gradient(135deg, hsla(0, 0%, 100%, 0.35) 0%, hsla(0, 0%, 100%, 0) 45%),
+    linear-gradient(160deg, var(--color-soft) 0%, hsl(calc(var(--spectrum-hue) + 160), 60%, 65%) 100%);
+  border-color: var(--color-deep);
+  animation-delay: 0.28s, 2.4s;
+}
+.game-card:nth-child(6) {
+  background:
+    linear-gradient(135deg, hsla(0, 0%, 100%, 0.35) 0%, hsla(0, 0%, 100%, 0) 45%),
+    linear-gradient(160deg, var(--color-deep) 0%, hsl(calc(var(--spectrum-hue) + 200), 75%, 35%) 100%);
+  border-color: var(--color-primary);
+  animation-delay: 0.35s, 2.8s;
+}
+
+@keyframes card-enter {
+  0%   { opacity: 0; transform: translateY(28px) scale(0.85) rotate(-3deg); }
+  60%  { opacity: 1; transform: translateY(-4px) scale(1.04) rotate(1deg); }
+  100% { opacity: 1; transform: translateY(0)    scale(1)    rotate(0); }
+}
+
+@keyframes card-breathe {
+  0%, 100% { transform: translateY(0)    scale(1); }
+  50%      { transform: translateY(-3px) scale(1.02); }
+}
+
+@keyframes card-shine {
+  0%, 60%, 100% { transform: translateX(-110%); }
+  75%, 85%      { transform: translateX(110%);  }
+}
 
 .card-icon {
-  font-size: clamp(2.5rem, 10vw, 3.5rem);
+  font-size: clamp(2.8rem, 11vw, 4rem);
   line-height: 1;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  filter:
+    drop-shadow(0 3px 6px rgba(0,0,0,0.25))
+    drop-shadow(0 0 12px hsla(0, 0%, 100%, 0.3));
   transition: none !important;
+  animation: icon-wiggle 4s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
+}
+
+.game-card:nth-child(1) .card-icon { animation-delay: 0.0s; }
+.game-card:nth-child(2) .card-icon { animation-delay: 0.3s; }
+.game-card:nth-child(3) .card-icon { animation-delay: 0.6s; }
+.game-card:nth-child(4) .card-icon { animation-delay: 0.9s; }
+.game-card:nth-child(5) .card-icon { animation-delay: 1.2s; }
+.game-card:nth-child(6) .card-icon { animation-delay: 1.5s; }
+
+@keyframes icon-wiggle {
+  0%, 100% { transform: rotate(-4deg) scale(1); }
+  25%      { transform: rotate(4deg)  scale(1.06); }
+  50%      { transform: rotate(-2deg) scale(1.02); }
+  75%      { transform: rotate(2deg)  scale(1.04); }
 }
 
 .card-stars {
   display: flex;
   gap: 3px;
   min-height: 18px;
+  position: relative;
+  z-index: 2;
   transition: none !important;
 }
 
@@ -242,6 +376,8 @@ body {
   transform: translateX(-50%);
   font-size: 1.4rem;
   opacity: 0;
+  z-index: 3;
+  filter: drop-shadow(0 2px 6px gold);
   transition: opacity 0.4s ease !important;
   pointer-events: none;
 }
@@ -1020,4 +1156,239 @@ body {
 @keyframes bonus-float {
   0%, 100% { transform: translateY(0) scale(1); }
   50% { transform: translateY(-6px) scale(1.1); }
+}
+
+/* ═══════════════════════════════════════
+   LANDSCAPE PHONE — fit screen, no scroll
+   ═══════════════════════════════════════ */
+
+@media (orientation: landscape) and (max-height: 500px) {
+
+  html, body {
+    overflow: hidden;
+  }
+
+  .screen {
+    overflow: hidden;
+    justify-content: center;
+    padding-bottom: 0;
+  }
+
+  /* HOME — 6 cards in a single row, mascot to the side */
+  #screen-home {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 6px 10px;
+  }
+
+  .home-header {
+    width: auto;
+    padding-top: 0;
+    padding-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .mascot {
+    font-size: clamp(2rem, 9vh, 3.2rem);
+  }
+
+  .mascot-container::before {
+    width: clamp(3.5rem, 14vh, 5.5rem);
+    height: clamp(3.5rem, 14vh, 5.5rem);
+  }
+
+  .game-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    max-width: none;
+    width: auto;
+    flex: 1;
+    padding-bottom: 0;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
+  }
+
+  .game-card {
+    min-height: 0;
+    height: min(80vh, 130px);
+    padding: 8px 6px 6px;
+    border-radius: 18px;
+    gap: 4px;
+  }
+
+  .card-icon {
+    font-size: clamp(1.6rem, 6vh, 2.4rem);
+  }
+
+  .card-star {
+    font-size: 9px;
+  }
+
+  .card-stars {
+    min-height: 12px;
+    gap: 2px;
+  }
+
+  .crown-overlay {
+    font-size: 0.9rem;
+    top: -10px;
+  }
+
+  /* GAME SCREEN — compact header */
+  .game-header {
+    padding: 4px 12px;
+  }
+
+  .btn-nav {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .round-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .game-content {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+
+  /* NUMBERS */
+  .numbers-game { gap: 10px; }
+  .animals-display {
+    min-height: 0;
+    height: 38vh;
+    padding: 8px;
+    gap: 4px;
+  }
+  .animal { font-size: clamp(1.4rem, 6vh, 2rem); }
+  .number-choices { gap: 8px; }
+  .number-btn {
+    width: clamp(48px, 11vh, 60px);
+    height: clamp(48px, 11vh, 60px);
+    font-size: clamp(1rem, 4vh, 1.4rem);
+  }
+
+  /* COLORS — falling game */
+  .colors-game {
+    height: calc(100vh - 60px);
+    height: calc(100dvh - 60px);
+  }
+  .falling-object {
+    font-size: 1.8rem;
+    width: 40px;
+    height: 40px;
+  }
+  .color-bucket {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
+  .color-buckets { padding: 6px; gap: 6px; }
+
+  /* SHAPES */
+  .shapes-game { gap: 10px; }
+  .shape-prompt {
+    padding: 8px 12px;
+    gap: 4px;
+    flex-direction: row;
+    justify-content: center;
+  }
+  .shape-prompt-label { font-size: 0.85rem; }
+  .shape-display { font-size: clamp(2.2rem, 9vh, 3.5rem); }
+  .shape-choices {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .shape-choice-btn {
+    min-height: 0;
+    height: clamp(50px, 12vh, 70px);
+    padding: 6px;
+    font-size: clamp(1.6rem, 6vh, 2.4rem);
+  }
+
+  /* PUZZLE */
+  .puzzle-game { gap: 8px; flex-direction: row; }
+  .puzzle-preview { gap: 2px; }
+  .preview-cell {
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+  }
+  .puzzle-board {
+    max-width: min(80vh, 320px);
+    padding: 6px;
+    gap: 4px;
+  }
+  .puzzle-piece {
+    font-size: clamp(1.3rem, 5.5vh, 2rem);
+  }
+
+  /* MEMORY */
+  .memory-game { gap: 6px; }
+  .memory-board {
+    max-width: min(80vh, 300px);
+    gap: 6px;
+  }
+  .memory-card-back { font-size: clamp(1.1rem, 4.5vh, 1.8rem); }
+  .memory-card-front .card-back-pattern { font-size: clamp(1rem, 4vh, 1.4rem); }
+
+  /* PATTERNS */
+  .patterns-game { gap: 10px; }
+  .pattern-row {
+    padding: 8px;
+    gap: 6px;
+  }
+  .pattern-item {
+    width: clamp(36px, 8vh, 48px);
+    height: clamp(36px, 8vh, 48px);
+    font-size: clamp(1.4rem, 5.5vh, 2rem);
+    border-radius: 10px;
+  }
+  .pattern-choice-btn {
+    width: clamp(48px, 11vh, 60px);
+    height: clamp(48px, 11vh, 60px);
+    font-size: clamp(1.4rem, 6vh, 2rem);
+    border-radius: 14px;
+  }
+  .pattern-progress { font-size: 0.9rem; }
+
+  /* CELEBRATION */
+  .celebration-container {
+    gap: 14px;
+    padding: 10px;
+  }
+  .celebration-burst { font-size: clamp(3rem, 18vh, 5rem); }
+  .btn-next-round { width: 50px; height: 50px; font-size: 1.4rem; }
+  .btn-home-celebrate { width: 42px; height: 42px; font-size: 1.1rem; }
+}
+
+/* Very short landscape (folded phones, smaller screens) */
+@media (orientation: landscape) and (max-height: 380px) {
+  .game-grid { gap: 6px; }
+  .game-card {
+    border-radius: 14px;
+    padding: 6px 4px 4px;
+    height: min(78vh, 100px);
+  }
+  .card-icon { font-size: clamp(1.4rem, 5.5vh, 2rem); }
+  .card-stars { display: none; }
+  .mascot { font-size: clamp(1.6rem, 7vh, 2.4rem); }
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  .game-card,
+  .game-card::before,
+  .card-icon,
+  .mascot,
+  .mascot-container::before,
+  body {
+    animation: none !important;
+  }
 }
