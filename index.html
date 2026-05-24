@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+  <title>EduGamings</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+  <div id="phase-shimmer" class="phase-shimmer"></div>
+  <div id="break-reminder" class="break-reminder">🌙</div>
+
+  <!-- HOME SCREEN -->
+  <div id="screen-home" class="screen active">
+    <div class="home-header">
+      <div class="mascot-container">
+        <div class="mascot" id="mascot">🦄</div>
+      </div>
+    </div>
+    <div class="game-grid">
+      <button class="game-card" data-game="numbers">
+        <span class="card-icon">🔢</span>
+        <div class="card-stars" id="stars-numbers"></div>
+        <div class="crown-overlay" id="crown-numbers"></div>
+      </button>
+      <button class="game-card" data-game="colors">
+        <span class="card-icon">🎨</span>
+        <div class="card-stars" id="stars-colors"></div>
+        <div class="crown-overlay" id="crown-colors"></div>
+      </button>
+      <button class="game-card" data-game="shapes">
+        <span class="card-icon">⭐</span>
+        <div class="card-stars" id="stars-shapes"></div>
+        <div class="crown-overlay" id="crown-shapes"></div>
+      </button>
+      <button class="game-card" data-game="puzzle">
+        <span class="card-icon">🧩</span>
+        <div class="card-stars" id="stars-puzzle"></div>
+        <div class="crown-overlay" id="crown-puzzle"></div>
+      </button>
+      <button class="game-card" data-game="memory">
+        <span class="card-icon">🃏</span>
+        <div class="card-stars" id="stars-memory"></div>
+        <div class="crown-overlay" id="crown-memory"></div>
+      </button>
+      <button class="game-card" data-game="patterns">
+        <span class="card-icon">🌈</span>
+        <div class="card-stars" id="stars-patterns"></div>
+        <div class="crown-overlay" id="crown-patterns"></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="screen-game" class="screen">
+    <div class="game-header">
+      <button class="btn-nav" id="btn-home-game">🏠</button>
+      <div class="round-dot-row" id="round-dots"></div>
+    </div>
+    <div id="game-content" class="game-content"></div>
+  </div>
+
+  <!-- CELEBRATION SCREEN -->
+  <div id="screen-celebration" class="screen">
+    <div class="celebration-container">
+      <div class="celebration-burst" id="celebration-burst"></div>
+      <div class="celebration-auto-bar">
+        <div class="celebration-auto-fill" id="celebration-auto-fill"></div>
+      </div>
+      <div class="celebration-actions">
+        <button class="btn-nav btn-home-celebrate" id="btn-home-celebrate">🏠</button>
+        <button class="btn-nav btn-next-round" id="btn-next-round">▶️</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/state.js"></script>
+  <script src="js/spectrum-engine.js"></script>
+  <script src="js/particles.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/home.js"></script>
+  <script src="js/celebration.js"></script>
+  <script src="js/games/numbers.js"></script>
+  <script src="js/games/colors.js"></script>
+  <script src="js/games/shapes.js"></script>
+  <script src="js/games/puzzle.js"></script>
+  <script src="js/games/memory.js"></script>
+  <script src="js/games/patterns.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
