@@ -901,6 +901,7 @@ body {
   cursor: pointer;
   position: relative;
   perspective: 600px;
+  container-type: inline-size;
   transition: none !important;
 }
 
@@ -939,7 +940,7 @@ body {
 .memory-card-back {
   background: white;
   transform: rotateY(180deg);
-  font-size: clamp(1.8rem, 7vw, 2.8rem);
+  font-size: 62cqw;
   line-height: 1;
   transition: none !important;
 }
@@ -960,7 +961,7 @@ body {
 }
 
 .memory-card-front .card-back-pattern {
-  font-size: clamp(1.5rem, 6vw, 2.2rem);
+  font-size: 48cqw;
   opacity: 0.7;
   transition: none !important;
 }
@@ -1385,8 +1386,6 @@ body {
     max-width: min(75dvh, 280px);
     gap: 5px;
   }
-  .memory-card-back { font-size: clamp(1rem, 4dvh, 1.6rem); }
-  .memory-card-front .card-back-pattern { font-size: clamp(0.9rem, 3.5dvh, 1.3rem); }
 
   /* PATTERNS */
   .patterns-game {
