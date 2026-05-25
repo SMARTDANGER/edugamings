@@ -799,12 +799,23 @@ body {
   gap: 6px;
 }
 
-.puzzle-preview-label {
-  font-size: 0.85rem;
-  color: var(--color-deep);
-  font-weight: 600;
-  opacity: 0.7;
+.puzzle-arrow {
+  font-size: 1.8rem;
+  line-height: 1;
+  animation: puzzle-arrow-bounce 1.4s ease-in-out infinite;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
+  user-select: none;
   transition: none !important;
+}
+
+@keyframes puzzle-arrow-bounce {
+  0%, 100% { transform: translateY(0)   scale(1);    }
+  50%      { transform: translateY(8px) scale(1.15); }
+}
+
+@keyframes puzzle-arrow-bounce-h {
+  0%, 100% { transform: rotate(-90deg) translateY(0)   scale(1);    }
+  50%      { transform: rotate(-90deg) translateY(8px) scale(1.15); }
 }
 
 .puzzle-preview-grid {
@@ -849,10 +860,33 @@ body {
   line-height: 1;
   border: 3px solid rgba(255,255,255,0.5);
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-  cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.2s ease !important;
+  cursor: grab;
+  transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.15s ease !important;
   user-select: none;
+  touch-action: none;
   aspect-ratio: 1;
+}
+
+.puzzle-piece:active { cursor: grabbing; }
+
+.puzzle-piece.drag-source {
+  opacity: 0.3;
+  transform: scale(0.92);
+}
+
+.puzzle-piece.drop-target {
+  border-color: white !important;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.7), 0 0 18px rgba(255,255,255,0.6), 0 3px 8px rgba(0,0,0,0.2) !important;
+  transform: scale(1.05);
+}
+
+.puzzle-piece.drag-ghost {
+  pointer-events: none !important;
+  z-index: 9999;
+  opacity: 0.95;
+  transform: scale(1.12) rotate(-3deg);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35), 0 0 18px rgba(255,255,255,0.4) !important;
+  transition: none !important;
 }
 
 .puzzle-piece.selected {
@@ -1360,7 +1394,11 @@ body {
     flex: 1;
     min-height: 0;
   }
-  .puzzle-preview { gap: 2px; flex-shrink: 0; }
+  .puzzle-preview { gap: 4px; flex-shrink: 0; }
+  .puzzle-arrow {
+    font-size: 1.4rem;
+    animation: puzzle-arrow-bounce-h 1.4s ease-in-out infinite;
+  }
   .preview-cell {
     width: clamp(14px, 3.5dvh, 20px);
     height: clamp(14px, 3.5dvh, 20px);

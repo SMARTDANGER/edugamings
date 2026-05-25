@@ -91,6 +91,16 @@ const PuzzleGame = (function () {
   let blocked      = false;
   let scene        = null;
 
+  // Drag-to-swap state
+  let dragSlot     = -1;
+  let dragGhost    = null;
+  let dragStartX   = 0;
+  let dragStartY   = 0;
+  let dragMoved    = false;
+  let dragOffsetX  = 0;
+  let dragOffsetY  = 0;
+  let lastHoverEl  = null;
+
   // ── Start ────────────────────────────────────────────────────────
 
   function start(cont, opts, cbs) {
@@ -158,11 +168,11 @@ const PuzzleGame = (function () {
     container.innerHTML = `
       <div class="puzzle-game">
         <div class="puzzle-preview">
-          <div class="puzzle-preview-label">Complete the picture!</div>
           <div class="puzzle-preview-grid"
                style="grid-template-columns:repeat(${cols},32px)">
             ${previewCells}
           </div>
+          <div class="puzzle-arrow" aria-hidden="true">⬇️</div>
         </div>
         <div class="puzzle-board"
              style="grid-template-columns:repeat(${cols},1fr)">
@@ -171,9 +181,117 @@ const PuzzleGame = (function () {
       </div>
     `;
 
-    container.querySelectorAll('.puzzle-piece').forEach(el => {
-      el.addEventListener('click', () => handleTap(parseInt(el.dataset.slot)));
-    });
+    container.querySelectorAll('.puzzle-piece').forEach(attachPieceHandlers);
+  }
+
+  // ── Drag-to-swap (pointer-based, works on touch and mouse) ───────
+
+  function attachPieceHandlers(el) {
+    el.addEventListener('pointerdown', onPointerDown);
+    el.addEventListener('pointermove', onPointerMove);
+    el.addEventListener('pointerup',   onPointerUp);
+    el.addEventListener('pointercancel', onPointerCancel);
+  }
+
+  function onPointerDown(e) {
+    if (blocked) return;
+    const el = e.currentTarget;
+    dragSlot   = parseInt(el.dataset.slot);
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    dragMoved  = false;
+    try { el.setPointerCapture(e.pointerId); } catch (_) {}
+  }
+
+  function onPointerMove(e) {
+    if (dragSlot === -1) return;
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+
+    if (!dragMoved && Math.hypot(dx, dy) > 6) {
+      dragMoved = true;
+      startGhost(dragSlot, e.clientX, e.clientY);
+    }
+    if (dragMoved) {
+      moveGhost(e.clientX, e.clientY);
+      updateHoverTarget(e.clientX, e.clientY);
+    }
+  }
+
+  function onPointerUp(e) {
+    if (dragSlot === -1) return;
+    if (dragMoved) {
+      const target = pieceAtPoint(e.clientX, e.clientY);
+      endGhost();
+      const targetSlot = target ? parseInt(target.dataset.slot) : -1;
+      const src = dragSlot;
+      dragSlot = -1;
+      if (targetSlot !== -1 && targetSlot !== src) {
+        swapSlots(src, targetSlot);
+      }
+    } else {
+      // Treat as a tap — keep tap-to-swap as a fallback
+      const slot = dragSlot;
+      dragSlot = -1;
+      handleTap(slot);
+    }
+  }
+
+  function onPointerCancel() {
+    endGhost();
+    dragSlot  = -1;
+    dragMoved = false;
+  }
+
+  function startGhost(slot, x, y) {
+    const els = container.querySelectorAll('.puzzle-piece');
+    const src = els[slot];
+    if (!src) return;
+    const rect = src.getBoundingClientRect();
+    dragGhost = src.cloneNode(true);
+    dragGhost.classList.add('drag-ghost');
+    dragGhost.classList.remove('selected', 'correct-pos');
+    dragGhost.style.position = 'fixed';
+    dragGhost.style.left   = rect.left + 'px';
+    dragGhost.style.top    = rect.top + 'px';
+    dragGhost.style.width  = rect.width + 'px';
+    dragGhost.style.height = rect.height + 'px';
+    dragGhost.style.margin = '0';
+    dragOffsetX = x - rect.left - rect.width / 2;
+    dragOffsetY = y - rect.top - rect.height / 2;
+    document.body.appendChild(dragGhost);
+    src.classList.add('drag-source');
+  }
+
+  function moveGhost(x, y) {
+    if (!dragGhost) return;
+    const w = dragGhost.offsetWidth;
+    const h = dragGhost.offsetHeight;
+    dragGhost.style.left = (x - w / 2 - dragOffsetX) + 'px';
+    dragGhost.style.top  = (y - h / 2 - dragOffsetY) + 'px';
+  }
+
+  function updateHoverTarget(x, y) {
+    const target = pieceAtPoint(x, y);
+    if (target === lastHoverEl) return;
+    if (lastHoverEl) lastHoverEl.classList.remove('drop-target');
+    lastHoverEl = target && parseInt(target.dataset.slot) !== dragSlot ? target : null;
+    if (lastHoverEl) lastHoverEl.classList.add('drop-target');
+  }
+
+  function pieceAtPoint(x, y) {
+    if (dragGhost) dragGhost.style.display = 'none';
+    const el = document.elementFromPoint(x, y);
+    if (dragGhost) dragGhost.style.display = '';
+    return el ? el.closest('.puzzle-piece') : null;
+  }
+
+  function endGhost() {
+    if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+    if (lastHoverEl) { lastHoverEl.classList.remove('drop-target'); lastHoverEl = null; }
+    container && container.querySelectorAll('.drag-source').forEach(el =>
+      el.classList.remove('drag-source')
+    );
   }
 
   // ── Interaction ──────────────────────────────────────────────────
@@ -256,10 +374,12 @@ const PuzzleGame = (function () {
   }
 
   function cleanup() {
+    endGhost();
     container = null;
     callbacks = null;
     blocked   = true;
     selectedSlot = -1;
+    dragSlot     = -1;
   }
 
   return { start, cleanup };
