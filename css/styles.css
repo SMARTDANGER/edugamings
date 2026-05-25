@@ -572,6 +572,63 @@ body {
   100% { transform: scale(1) rotate(0); }
 }
 
+/* Addition / subtraction layout — CSS grid keeps it from overflowing */
+.math-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.math-side {
+  width: auto;
+  min-width: 0;
+  min-height: 90px;
+  padding: 6px;
+  overflow: hidden;
+}
+
+.math-side .animal {
+  font-size: clamp(1.2rem, 5.5vw, 2rem);
+}
+
+.math-op {
+  font-size: clamp(1.4rem, 6vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1;
+  padding: 0 2px;
+  color: var(--color-deep);
+  user-select: none;
+}
+
+.op-add { color: #2e7d32; }
+.op-sub { color: #c62828; }
+
+.math-question {
+  font-size: clamp(1.8rem, 9vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1;
+  width:  clamp(48px, 14vw, 64px);
+  height: clamp(48px, 14vw, 64px);
+  border-radius: 50%;
+  background: hsla(var(--spectrum-hue), 60%, 95%, 0.85);
+  border: 3px dashed var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-deep);
+  animation: q-pulse 1.5s ease-in-out infinite;
+  flex: 0 0 auto;
+}
+
+@keyframes q-pulse {
+  0%, 100% { transform: scale(1);    }
+  50%      { transform: scale(1.06); }
+}
+
 .number-choices {
   display: flex;
   gap: 16px;
@@ -830,14 +887,13 @@ body {
 }
 
 .preview-cell {
-  width: 32px;
-  height: 32px;
+  aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: clamp(0.7rem, 60cqw, 1.2rem);
+  container-type: inline-size;
   line-height: 1;
-  transition: none !important;
 }
 
 .puzzle-board {
@@ -1343,6 +1399,16 @@ body {
     height: clamp(40px, 10dvh, 56px);
     font-size: clamp(0.9rem, 4dvh, 1.3rem);
   }
+  .math-row { gap: 6px; }
+  .math-side {
+    min-height: 60px;
+    min-width: 0;
+    padding: 4px;
+  }
+  .math-op {
+    font-size: clamp(1.4rem, 5.5dvh, 2rem);
+    padding: 0;
+  }
 
   /* COLORS — falling game */
   .colors-game {
@@ -1404,9 +1470,7 @@ body {
     animation: puzzle-arrow-bounce-h 1.4s ease-in-out infinite;
   }
   .preview-cell {
-    width: clamp(14px, 3.5dvh, 20px);
-    height: clamp(14px, 3.5dvh, 20px);
-    font-size: 0.65rem;
+    font-size: clamp(0.55rem, 60cqw, 1rem);
   }
   .puzzle-board {
     max-width: min(70dvh, 280px);

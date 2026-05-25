@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════
-   NUMBERS GAME — count animals
+   NUMBERS GAME — count, add, and subtract animals
    ═══════════════════════════════════════ */
 
 const NumbersGame = (function () {
@@ -8,6 +8,9 @@ const NumbersGame = (function () {
     '🐶','🐱','🐸','🦊','🐼','🦄','🐧','🦋','🐝','🦕',
     '🐳','🦒','🐘','🦁','🦀','🐙','🦔','🐺','🦅','🐬',
   ];
+
+  // Three modes rotate so a child sees each kind regularly.
+  const MODES = ['count', 'add', 'sub'];
 
   const DIFFICULTY_WAVE = ['easy', 'medium', 'hard', 'medium'];
   const MAX_BY_DIFF = { easy: 5, medium: 10, hard: 15 };
@@ -20,12 +23,22 @@ const NumbersGame = (function () {
     return DIFFICULTY_WAVE[round % 4];
   }
 
+  function getMode(round) {
+    // Plain counting for the first few rounds, then rotate all three.
+    if (round < 3) return 'count';
+    return MODES[round % MODES.length];
+  }
+
   function getRangeFor(diff) {
     return {
       easy:   { min: 1, max: 5  },
-      medium: { min: 4, max: 10 },
-      hard:   { min: 8, max: 15 },
+      medium: { min: 2, max: 10 },
+      hard:   { min: 3, max: 15 },
     }[diff];
+  }
+
+  function rand(min, max) {
+    return min + Math.floor(Math.random() * (max - min + 1));
   }
 
   function shuffle(arr) {
@@ -43,14 +56,36 @@ const NumbersGame = (function () {
     while (choices.size < 3 && attempts < 30) {
       const delta = Math.floor(Math.random() * 4) + 1;
       const sign  = Math.random() > 0.5 ? 1 : -1;
-      const n     = Math.max(1, Math.min(max, correct + sign * delta));
+      // No negative numbers and no zero answers
+      const n     = Math.max(0, Math.min(max, correct + sign * delta));
       if (n !== correct) choices.add(n);
       attempts++;
     }
-    // Fill with deterministic fallbacks if needed
-    let fill = 1;
+    let fill = 0;
     while (choices.size < 3) { if (!choices.has(fill)) choices.add(fill); fill++; }
     return shuffle(Array.from(choices));
+  }
+
+  // ── Operand pickers (no negatives, results always >= 0) ─────────
+
+  function pickCount(range) {
+    const n = rand(range.min, range.max);
+    return { kind: 'count', a: n, b: 0, result: n };
+  }
+
+  function pickAdd(range, max) {
+    // Pick a + b such that result is within range
+    const target = rand(Math.max(range.min, 2), Math.min(range.max, max));
+    const a = rand(1, target - 1);
+    const b = target - a;
+    return { kind: 'add', a, b, result: target };
+  }
+
+  function pickSub(range, max) {
+    // a - b, with result >= 1 (avoid zero so kids see a clear "kaç tane kaldı")
+    const a = rand(Math.max(2, range.min), Math.min(range.max, max));
+    const b = rand(1, a - 1);
+    return { kind: 'sub', a, b, result: a - b };
   }
 
   // ── Render ───────────────────────────────────────────────────────
@@ -60,23 +95,26 @@ const NumbersGame = (function () {
     callbacks = cbs;
     blocked   = false;
 
-    const diff    = getDifficulty(options.round || 0);
-    const range   = getRangeFor(diff);
-    const count   = range.min + Math.floor(Math.random() * (range.max - range.min + 1));
+    const round = options.round || 0;
+    const diff  = getDifficulty(round);
+    const mode  = getMode(round);
+    const range = getRangeFor(diff);
+    const max   = MAX_BY_DIFF[diff];
+
+    let problem;
+    if      (mode === 'add') problem = pickAdd(range, max);
+    else if (mode === 'sub') problem = pickSub(range, max);
+    else                     problem = pickCount(range);
+
     const animalIdx = (options.rotationIndex || 0) % ANIMAL_POOL.length;
-    const animal  = ANIMAL_POOL[animalIdx];
+    const animal    = ANIMAL_POOL[animalIdx];
 
-    correctAnswer = count;
-    const choices = generateChoices(count, MAX_BY_DIFF[diff]);
-
-    // Build delays so animals pop in one by one
-    const animalHtml = Array.from({ length: count }, (_, i) =>
-      `<span class="animal" style="animation-delay:${i * 0.06}s">${animal}</span>`
-    ).join('');
+    correctAnswer = problem.result;
+    const choices = generateChoices(problem.result, max);
 
     container.innerHTML = `
       <div class="numbers-game">
-        <div class="animals-display">${animalHtml}</div>
+        ${renderProblem(problem, animal)}
         <div class="number-choices">
           ${choices.map(n => `<button class="number-btn" data-answer="${n}">${n}</button>`).join('')}
         </div>
@@ -86,6 +124,29 @@ const NumbersGame = (function () {
     container.querySelectorAll('.number-btn').forEach(btn => {
       btn.addEventListener('click', () => handleChoice(btn));
     });
+  }
+
+  function renderProblem(problem, animal) {
+    const group = (count, startDelay = 0) =>
+      Array.from({ length: count }, (_, i) =>
+        `<span class="animal" style="animation-delay:${(startDelay + i) * 0.05}s">${animal}</span>`
+      ).join('');
+
+    if (problem.kind === 'count') {
+      return `<div class="animals-display">${group(problem.a)}</div>`;
+    }
+    const opSymbol = problem.kind === 'add' ? '+' : '−';
+    const opClass  = problem.kind === 'add' ? 'op-add' : 'op-sub';
+    // Drop the "?" placeholder — the answer buttons below are the prompt.
+    // Just show: [side a]  +/−  [side b]  =
+    return `
+      <div class="math-row">
+        <div class="animals-display math-side">${group(problem.a)}</div>
+        <div class="math-op ${opClass}">${opSymbol}</div>
+        <div class="animals-display math-side">${group(problem.b, problem.a)}</div>
+        <div class="math-op math-eq">=</div>
+      </div>
+    `;
   }
 
   function handleChoice(btn) {
