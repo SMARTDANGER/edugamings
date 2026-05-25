@@ -54,11 +54,29 @@ const State = (function () {
     return data;
   }
 
-  function save() {
+  let saveTimer = null;
+  let savePending = false;
+
+  function saveNow() {
+    saveTimer = null;
+    savePending = false;
     try {
       localStorage.setItem(KEY, JSON.stringify(data));
     } catch (e) { /* storage full — ignore */ }
   }
+
+  // Coalesce bursts of writes into one localStorage call per ~250ms.
+  function save() {
+    if (savePending) return;
+    savePending = true;
+    saveTimer = setTimeout(saveNow, 250);
+  }
+
+  // Flush any pending write before unload so progress isn't lost.
+  window.addEventListener('pagehide',         () => { if (savePending) saveNow(); });
+  window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && savePending) saveNow();
+  });
 
   function get(key) {
     return key ? data[key] : data;

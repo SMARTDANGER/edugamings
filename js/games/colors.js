@@ -43,6 +43,7 @@ const ColorsGame = (function () {
   let score = 0, needed = 8;
   let activeColors = [];
   let fallingEl    = null;
+  let fallingArea  = null;
   let fallingColor = null;
   let fallingX     = 0;
   let fallingY     = 0;
@@ -50,6 +51,7 @@ const ColorsGame = (function () {
   let windDrift    = 0;
   let areaH        = 0;
   let areaW        = 0;
+  let resizeObs    = null;
   let blocked      = false;
   let isRunning    = false;
 
@@ -111,20 +113,32 @@ const ColorsGame = (function () {
       </div>
     `;
 
+    fallingArea = document.getElementById('colors-falling-area');
+    measureArea();
+
+    // Re-measure only when the area itself resizes (orientation change,
+    // address-bar collapse, etc.) — not on every animation frame.
+    if (resizeObs) resizeObs.disconnect();
+    if (window.ResizeObserver && fallingArea) {
+      resizeObs = new ResizeObserver(measureArea);
+      resizeObs.observe(fallingArea);
+    }
+
     document.querySelectorAll('.color-bucket').forEach(btn => {
       btn.addEventListener('click', () => handleBucket(btn.dataset.color));
     });
   }
 
+  function measureArea() {
+    if (!fallingArea) return;
+    areaW = fallingArea.clientWidth;
+    areaH = fallingArea.clientHeight;
+  }
+
   // ── Falling object ───────────────────────────────────────────────
 
   function spawnObject() {
-    if (!isRunning) return;
-    const area = document.getElementById('colors-falling-area');
-    if (!area) return;
-
-    areaH = area.clientHeight;
-    areaW = area.clientWidth;
+    if (!isRunning || !fallingArea) return;
 
     fallingColor = activeColors[Math.floor(Math.random() * activeColors.length)];
     fallingX = 40 + Math.random() * Math.max(1, areaW - 80);
@@ -137,9 +151,9 @@ const ColorsGame = (function () {
     fallingEl.className = 'falling-object';
     fallingEl.innerHTML = shape;
     fallingEl.style.background = fallingColor.bg;
-    fallingEl.style.left = fallingX + 'px';
-    fallingEl.style.top  = fallingY + 'px';
-    area.appendChild(fallingEl);
+    // Use transform (composited) instead of left/top (layout)
+    fallingEl.style.transform = `translate3d(${fallingX}px, ${fallingY}px, 0)`;
+    fallingArea.appendChild(fallingEl);
 
     if (rafId) cancelAnimationFrame(rafId);
     drop();
@@ -147,17 +161,14 @@ const ColorsGame = (function () {
 
   function drop() {
     if (!isRunning || !fallingEl) return;
-    const area = document.getElementById('colors-falling-area');
-    if (!area) return;
-
-    areaH = area.clientHeight;
-    areaW = area.clientWidth;
 
     fallingY += fallingSpeed;
-    fallingX = Math.max(0, Math.min(areaW - 56, fallingX + windDrift));
+    const maxX = areaW - 56;
+    fallingX += windDrift;
+    if (fallingX < 0)    fallingX = 0;
+    if (fallingX > maxX) fallingX = maxX;
 
-    fallingEl.style.top  = fallingY + 'px';
-    fallingEl.style.left = fallingX + 'px';
+    fallingEl.style.transform = `translate3d(${fallingX}px, ${fallingY}px, 0)`;
 
     if (fallingY > areaH + 20) {
       // Missed — respawn
@@ -214,7 +225,9 @@ const ColorsGame = (function () {
   function cleanup() {
     isRunning = false;
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    if (resizeObs) { resizeObs.disconnect(); resizeObs = null; }
     fallingEl = null;
+    fallingArea = null;
   }
 
   return { start, cleanup };
