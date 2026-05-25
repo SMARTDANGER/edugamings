@@ -1162,16 +1162,21 @@ body {
    LANDSCAPE PHONE — fit screen, no scroll
    ═══════════════════════════════════════ */
 
-@media (orientation: landscape) and (max-height: 500px) {
+@media (orientation: landscape) and (max-height: 600px) {
 
   html, body {
     overflow: hidden;
+    height: 100%;
+    height: 100dvh;
+    overscroll-behavior: none;
+    touch-action: pan-x pan-y;
   }
 
   .screen {
     overflow: hidden;
     justify-content: center;
     padding-bottom: 0;
+    height: 100dvh;
   }
 
   /* HOME — 6 cards in a single row, mascot to the side */
@@ -1181,6 +1186,7 @@ body {
     justify-content: center;
     gap: 10px;
     padding: 6px 10px;
+    overflow: hidden;
   }
 
   .home-header {
@@ -1213,10 +1219,16 @@ body {
 
   .game-card {
     min-height: 0;
-    height: min(80vh, 130px);
+    height: min(80dvh, 130px);
     padding: 8px 6px 6px;
     border-radius: 18px;
     gap: 4px;
+  }
+
+  /* Game screen container */
+  #screen-game {
+    height: 100dvh;
+    overflow: hidden;
   }
 
   .card-icon {
@@ -1256,116 +1268,152 @@ body {
   .game-content {
     padding: 8px 12px;
     gap: 8px;
+    overflow: hidden;
+    min-height: 0;
+    flex: 1;
   }
 
   /* NUMBERS */
-  .numbers-game { gap: 10px; }
+  .numbers-game {
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+    justify-content: center;
+  }
   .animals-display {
     min-height: 0;
-    height: 38vh;
-    padding: 8px;
+    height: auto;
+    flex: 1;
+    padding: 6px;
     gap: 4px;
   }
-  .animal { font-size: clamp(1.4rem, 6vh, 2rem); }
-  .number-choices { gap: 8px; }
+  .animal { font-size: clamp(1.2rem, 5.5dvh, 1.8rem); }
+  .number-choices { gap: 8px; flex-shrink: 0; }
   .number-btn {
-    width: clamp(48px, 11vh, 60px);
-    height: clamp(48px, 11vh, 60px);
-    font-size: clamp(1rem, 4vh, 1.4rem);
+    width: clamp(40px, 10dvh, 56px);
+    height: clamp(40px, 10dvh, 56px);
+    font-size: clamp(0.9rem, 4dvh, 1.3rem);
   }
 
   /* COLORS — falling game */
   .colors-game {
-    height: calc(100vh - 60px);
-    height: calc(100dvh - 60px);
+    height: 100%;
+    flex: 1;
+    min-height: 0;
   }
   .falling-object {
-    font-size: 1.8rem;
-    width: 40px;
-    height: 40px;
+    font-size: 1.5rem;
+    width: 36px;
+    height: 36px;
   }
   .color-bucket {
-    width: 44px;
-    height: 44px;
-    font-size: 1.1rem;
+    width: clamp(36px, 9dvh, 50px);
+    height: clamp(36px, 9dvh, 50px);
+    font-size: 1rem;
   }
-  .color-buckets { padding: 6px; gap: 6px; }
+  .color-buckets { padding: 5px; gap: 6px; }
 
   /* SHAPES */
-  .shapes-game { gap: 10px; }
-  .shape-prompt {
-    padding: 8px 12px;
-    gap: 4px;
-    flex-direction: row;
+  .shapes-game {
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
     justify-content: center;
   }
-  .shape-prompt-label { font-size: 0.85rem; }
-  .shape-display { font-size: clamp(2.2rem, 9vh, 3.5rem); }
+  .shape-prompt {
+    padding: 6px 12px;
+    gap: 6px;
+    flex-direction: row;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .shape-prompt-label { font-size: 0.8rem; }
+  .shape-display { font-size: clamp(1.8rem, 8dvh, 3rem); }
   .shape-choices {
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
+    flex-shrink: 0;
   }
   .shape-choice-btn {
     min-height: 0;
-    height: clamp(50px, 12vh, 70px);
-    padding: 6px;
-    font-size: clamp(1.6rem, 6vh, 2.4rem);
+    height: clamp(44px, 11dvh, 64px);
+    padding: 4px;
+    font-size: clamp(1.4rem, 5.5dvh, 2.2rem);
   }
 
   /* PUZZLE */
-  .puzzle-game { gap: 8px; flex-direction: row; }
-  .puzzle-preview { gap: 2px; }
+  .puzzle-game {
+    gap: 10px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 0;
+  }
+  .puzzle-preview { gap: 2px; flex-shrink: 0; }
   .preview-cell {
-    width: 18px;
-    height: 18px;
-    font-size: 0.7rem;
+    width: clamp(14px, 3.5dvh, 20px);
+    height: clamp(14px, 3.5dvh, 20px);
+    font-size: 0.65rem;
   }
   .puzzle-board {
-    max-width: min(80vh, 320px);
-    padding: 6px;
-    gap: 4px;
+    max-width: min(70dvh, 280px);
+    padding: 5px;
+    gap: 3px;
   }
   .puzzle-piece {
-    font-size: clamp(1.3rem, 5.5vh, 2rem);
+    font-size: clamp(1.1rem, 5dvh, 1.8rem);
   }
 
   /* MEMORY */
-  .memory-game { gap: 6px; }
-  .memory-board {
-    max-width: min(80vh, 300px);
+  .memory-game {
     gap: 6px;
+    flex: 1;
+    min-height: 0;
+    justify-content: center;
   }
-  .memory-card-back { font-size: clamp(1.1rem, 4.5vh, 1.8rem); }
-  .memory-card-front .card-back-pattern { font-size: clamp(1rem, 4vh, 1.4rem); }
+  .memory-board {
+    max-width: min(75dvh, 280px);
+    gap: 5px;
+  }
+  .memory-card-back { font-size: clamp(1rem, 4dvh, 1.6rem); }
+  .memory-card-front .card-back-pattern { font-size: clamp(0.9rem, 3.5dvh, 1.3rem); }
 
   /* PATTERNS */
-  .patterns-game { gap: 10px; }
+  .patterns-game {
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+    justify-content: center;
+  }
   .pattern-row {
-    padding: 8px;
+    padding: 6px;
     gap: 6px;
+    flex-shrink: 0;
   }
   .pattern-item {
-    width: clamp(36px, 8vh, 48px);
-    height: clamp(36px, 8vh, 48px);
-    font-size: clamp(1.4rem, 5.5vh, 2rem);
+    width: clamp(32px, 7.5dvh, 44px);
+    height: clamp(32px, 7.5dvh, 44px);
+    font-size: clamp(1.2rem, 5dvh, 1.8rem);
     border-radius: 10px;
   }
+  .pattern-choices { flex-shrink: 0; }
   .pattern-choice-btn {
-    width: clamp(48px, 11vh, 60px);
-    height: clamp(48px, 11vh, 60px);
-    font-size: clamp(1.4rem, 6vh, 2rem);
+    width: clamp(40px, 10dvh, 56px);
+    height: clamp(40px, 10dvh, 56px);
+    font-size: clamp(1.2rem, 5.5dvh, 1.8rem);
     border-radius: 14px;
   }
-  .pattern-progress { font-size: 0.9rem; }
+  .pattern-progress { font-size: 0.85rem; }
 
   /* CELEBRATION */
   .celebration-container {
-    gap: 14px;
-    padding: 10px;
+    gap: 12px;
+    padding: 8px;
   }
-  .celebration-burst { font-size: clamp(3rem, 18vh, 5rem); }
-  .btn-next-round { width: 50px; height: 50px; font-size: 1.4rem; }
-  .btn-home-celebrate { width: 42px; height: 42px; font-size: 1.1rem; }
+  .celebration-burst { font-size: clamp(2.5rem, 16dvh, 4.5rem); }
+  .btn-next-round { width: 46px; height: 46px; font-size: 1.3rem; }
+  .btn-home-celebrate { width: 40px; height: 40px; font-size: 1rem; }
 }
 
 /* Very short landscape (folded phones, smaller screens) */
@@ -1374,11 +1422,11 @@ body {
   .game-card {
     border-radius: 14px;
     padding: 6px 4px 4px;
-    height: min(78vh, 100px);
+    height: min(78dvh, 100px);
   }
-  .card-icon { font-size: clamp(1.4rem, 5.5vh, 2rem); }
+  .card-icon { font-size: clamp(1.4rem, 5.5dvh, 2rem); }
   .card-stars { display: none; }
-  .mascot { font-size: clamp(1.6rem, 7vh, 2.4rem); }
+  .mascot { font-size: clamp(1.6rem, 7dvh, 2.4rem); }
 }
 
 /* Respect users who prefer less motion */
