@@ -623,8 +623,6 @@ body {
 
 .falling-object {
   position: absolute;
-  font-size: 2.8rem;
-  line-height: 1;
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -636,6 +634,18 @@ body {
   user-select: none;
   pointer-events: none;
   transition: opacity 0.25s ease !important;
+  animation: falling-glow 2.4s ease-in-out infinite;
+}
+
+.falling-object svg {
+  width: 72%;
+  height: 72%;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
+}
+
+@keyframes falling-glow {
+  0%, 100% { box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+  50%      { box-shadow: 0 4px 18px rgba(255,255,255,0.55), 0 0 22px rgba(255,255,255,0.25); }
 }
 
 .progress-bar {
@@ -1302,9 +1312,8 @@ body {
     min-height: 0;
   }
   .falling-object {
-    font-size: 1.5rem;
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
   }
   .color-bucket {
     width: clamp(36px, 9dvh, 50px);
