@@ -166,6 +166,7 @@ const Particles = (function () {
   // ── Animation loop ──────────────────────────────────────────────
 
   function animate(ts) {
+    if (paused) { rafId = null; return; }
     // Read the hue once per frame instead of once per particle.
     // Re-read at most every 250ms — hue changes are smoothed by 2s CSS
     // transitions anyway, so finer granularity isn't visible.
@@ -185,6 +186,8 @@ const Particles = (function () {
 
   // ── Public API ──────────────────────────────────────────────────
 
+  let paused = false;
+
   function init() {
     canvas = document.getElementById('particle-canvas');
     ctx    = canvas.getContext('2d', { alpha: true });
@@ -192,11 +195,29 @@ const Particles = (function () {
     window.addEventListener('resize', scheduleResize, { passive: true });
     window.addEventListener('orientationchange', scheduleResize, { passive: true });
 
+    // Pause the canvas loop when the tab is hidden — no point burning
+    // CPU drawing particles nobody can see.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') pause();
+      else                                       resume();
+    });
+
     particles = [];
     for (let i = 0; i < MAX; i++) particles.push(new Particle());
 
     if (rafId) cancelAnimationFrame(rafId);
     requestAnimationFrame(animate);
+  }
+
+  function pause() {
+    paused = true;
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  }
+
+  function resume() {
+    if (!paused) return;
+    paused = false;
+    if (!rafId) requestAnimationFrame(animate);
   }
 
   let resizeTimer = null;
@@ -227,5 +248,5 @@ const Particles = (function () {
     });
   }
 
-  return { init, setType };
+  return { init, setType, pause, resume };
 })();
