@@ -21,6 +21,7 @@ const ThreeEngine = (function () {
       case 'torus':    g = new T.TorusGeometry(0.55, 0.22, 16, 36); break;
       case 'pyramid':  g = new T.ConeGeometry(0.75, 1.3, 4); break;
       case 'block':    g = new T.BoxGeometry(1.4, 0.5, 1.4); break;
+      case 'ground':   g = new T.CircleGeometry(2.6, 32); break;
       default:         g = new T.BoxGeometry(1, 1, 1);
     }
     geometries[type] = g;

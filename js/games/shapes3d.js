@@ -29,6 +29,10 @@ const Shapes3DGame = (function () {
   // ── Lifecycle ────────────────────────────────────────────────────
 
   function start(container, opts, cbs) {
+    // Defensive: if a previous round left state behind, dispose it first
+    // so we never run two concurrent rAF loops or stack two scenes.
+    cleanup();
+
     callbacks = cbs;
     blocked   = false;
 

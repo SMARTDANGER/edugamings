@@ -23,6 +23,10 @@ const Tower3DGame = (function () {
   // ── Lifecycle ────────────────────────────────────────────────────
 
   function start(container, opts, cbs) {
+    // Defensive: clean any leftover state from a previous round before
+    // we rebuild the scene.
+    cleanup();
+
     callbacks = cbs;
     blocked   = false;
     blocks    = [];
@@ -53,10 +57,11 @@ const Tower3DGame = (function () {
     scene = new T.Scene();
     ThreeEngine.addLights(scene);
 
-    // Ground (subtle dark plane so blocks have a place to land)
-    const groundGeo = new T.CircleGeometry(2.6, 32);
-    const groundMat = new T.MeshPhongMaterial({ color: 0x6f86b9, opacity: 0.35, transparent: true });
-    const ground = new T.Mesh(groundGeo, groundMat);
+    // Ground (subtle dark plane so blocks have a place to land) —
+    // geometry comes from the cache so it isn't re-allocated per round.
+    const ground = ThreeEngine.makeMesh('ground', 0x6f86b9);
+    ground.material.opacity     = 0.35;
+    ground.material.transparent = true;
     ground.rotation.x = -Math.PI / 2;
     ground.position.y = -0.05;
     scene.add(ground);

@@ -24,13 +24,20 @@ const Router = (function () {
     show('home');
   }
 
+  // Used to ignore a 3D bundle that finished loading after the player
+  // already tapped a different card.
+  let pendingGameRequest = null;
+
   function startGame(gameId) {
     Spectrum.recordInteraction();
+    pendingGameRequest = gameId;
     const needsThree = (gameId === 'shapes3d' || gameId === 'tower3d');
     if (needsThree) {
       // Pause particles while a 3D game owns the GPU
       if (typeof Particles !== 'undefined') Particles.pause();
       load3DBundle(() => {
+        if (pendingGameRequest !== gameId) return;     // user moved on
+        pendingGameRequest = null;
         if (typeof window.THREE === 'undefined') {
           // 3D bundle failed to download — fall back to home with no harm.
           if (typeof Particles !== 'undefined') Particles.resume();
@@ -42,6 +49,7 @@ const Router = (function () {
       });
       return;
     }
+    pendingGameRequest = null;
     if (typeof Particles !== 'undefined') Particles.resume();
     currentGame = gameId;
     show('game');
@@ -83,6 +91,13 @@ const Router = (function () {
 
   function launchRound() {
     if (!currentGame) return;
+    // Before tearing down the DOM, stop the previous round's game so its
+    // rAF/3D scene doesn't keep running alongside the new one.
+    if (currentGameCleanup) {
+      try { currentGameCleanup(); } catch (_) {}
+      currentGameCleanup = null;
+    }
+    if (typeof ThreeEngine !== 'undefined') ThreeEngine.stopActive();
     clearGameContent();
 
     const stateData    = State.get();
@@ -135,6 +150,14 @@ const Router = (function () {
         // Remove overlays
         const golden = document.getElementById('golden-round-overlay');
         if (golden) golden.remove();
+
+        // Stop the just-finished game's rAF/scene before celebration —
+        // no point rendering into a hidden canvas for 3 s.
+        if (currentGameCleanup) {
+          try { currentGameCleanup(); } catch (_) {}
+          currentGameCleanup = null;
+        }
+        if (typeof ThreeEngine !== 'undefined') ThreeEngine.stopActive();
 
         // Update state
         State.incrementTotal();
