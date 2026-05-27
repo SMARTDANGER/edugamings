@@ -15,7 +15,7 @@ const Celebration = (function () {
 
     const total = State.get().totalRoundsPlayed;
     const isSpecial = total > 0 && total % 10 === 0;
-    durationMs = isSpecial ? 5000 : 3000;
+    durationMs = isSpecial ? 900 : 500;
 
     const burst  = document.getElementById('celebration-burst');
     const fill   = document.getElementById('celebration-auto-fill');
