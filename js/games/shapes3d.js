@@ -6,7 +6,7 @@ const Shapes3DGame = (function () {
 
   const PALETTE = [0xFF6B6B, 0x4ECDC4, 0xFFE66D, 0x95E1D3, 0xAA96DA, 0xFFB6E1, 0xF6BD60, 0x5FA8D3];
   const DIFF_WAVE = ['easy', 'medium', 'hard', 'medium'];
-  const CHOICE_COUNT_BY_DIFF = { easy: 3, medium: 4, hard: 4 };
+  const CHOICE_COUNT_BY_DIFF = { easy: 3, medium: 5, hard: 6 };
 
   let callbacks  = null;
   let blocked    = false;
@@ -144,6 +144,35 @@ const Shapes3DGame = (function () {
           <polygon points="30,6 10,48 30,40" fill="${fill}" stroke="${dark}" stroke-width="1.5"/>
           <polygon points="30,6 50,48 30,40" fill="${dark}" stroke="${dark}" stroke-width="1.5"/>
           <polygon points="10,48 30,40 50,48 30,55" fill="${dark}" opacity="0.7"/>
+        </svg>`;
+      case 'prism':
+        // Triangular prism (Toblerone) seen from the front-left.
+        return `<svg viewBox="0 0 60 60" class="s3d-icon">
+          <polygon points="12,46 26,18 40,46" fill="${fill}" stroke="${dark}" stroke-width="1.5"/>
+          <polygon points="26,18 36,12 50,40 40,46" fill="${dark}" stroke="${dark}" stroke-width="1.5"/>
+        </svg>`;
+      case 'hexprism':
+        // Hexagonal column / crystal.
+        return `<svg viewBox="0 0 60 60" class="s3d-icon">
+          <polygon points="22,12 38,12 47,22 38,32 22,32 13,22" fill="${fill}" stroke="${dark}" stroke-width="1.4"/>
+          <polygon points="13,22 22,32 22,50 13,40" fill="${dark}" stroke="${dark}" stroke-width="1.4"/>
+          <polygon points="22,32 38,32 38,50 22,50" fill="${fill}" opacity="0.92" stroke="${dark}" stroke-width="1.4"/>
+          <polygon points="38,32 47,22 47,40 38,50" fill="${dark}" opacity="0.85" stroke="${dark}" stroke-width="1.4"/>
+        </svg>`;
+      case 'octahedron':
+        // Diamond — two pyramids base to base, four visible faces.
+        return `<svg viewBox="0 0 60 60" class="s3d-icon">
+          <polygon points="30,6 14,30 30,30" fill="${fill}" stroke="${dark}" stroke-width="1.4"/>
+          <polygon points="30,6 46,30 30,30" fill="${dark}" stroke="${dark}" stroke-width="1.4"/>
+          <polygon points="14,30 30,54 30,30" fill="${dark}" stroke="${dark}" stroke-width="1.4"/>
+          <polygon points="46,30 30,54 30,30" fill="${fill}" stroke="${dark}" stroke-width="1.4"/>
+        </svg>`;
+      case 'tetrahedron':
+        // Triangular pyramid with a visible back edge.
+        return `<svg viewBox="0 0 60 60" class="s3d-icon">
+          <polygon points="10,48 50,48 30,12" fill="${fill}" stroke="${dark}" stroke-width="1.5"/>
+          <polygon points="30,12 50,48 33,42" fill="${dark}" stroke="${dark}" stroke-width="1.5"/>
+          <polygon points="10,48 50,48 33,42" fill="${dark}" opacity="0.55" stroke="${dark}" stroke-width="1"/>
         </svg>`;
     }
     return '';

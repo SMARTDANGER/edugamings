@@ -10,6 +10,22 @@ const Tower3DGame = (function () {
   const DIFF_WAVE = ['easy', 'medium', 'hard', 'medium'];
   const HEIGHT_BY_DIFF = { easy: 3, medium: 4, hard: 5 };
 
+  // Height of one stacked layer. Blocks are scaled to roughly this tall so
+  // they look like solid 3D objects sitting on each other — not flat discs.
+  const LAYER_H = 0.92;
+
+  // Per-shape scale that keeps each block ~LAYER_H tall WITHOUT squashing it.
+  // (Geometry native heights: cube 1, sphere ⌀1.3, cylinder 1.15, cone 1.3.)
+  function blockScale(type) {
+    switch (type) {
+      case 'sphere':   return [0.70, 0.70, 0.70]; // round ball, ⌀≈0.9
+      case 'cylinder': return [0.84, 0.80, 0.84]; // upright cylinder
+      case 'cone':     return [0.72, 0.72, 0.72]; // proper cone
+      case 'cube':
+      default:         return [0.92, 0.92, 0.92]; // solid cube
+    }
+  }
+
   let callbacks  = null;
   let blocked    = false;
   let rafId      = null;
@@ -122,13 +138,15 @@ const Tower3DGame = (function () {
       lastT = now;
       stepPhysics(dt);
 
-      // Slow orbit so the tower can be inspected from all sides
+      // Slow orbit so the tower can be inspected from all sides. Pull the
+      // camera back and up as the tower grows so it always stays framed.
       const orbitAngle = (now / 7000);
-      const stackH = blocks.length * 0.5;
-      camera.position.x = Math.sin(orbitAngle) * 4.4;
-      camera.position.z = Math.cos(orbitAngle) * 4.4;
-      camera.position.y = 2.8 + Math.max(0, stackH - 1) * 0.4;
-      camera.lookAt(0, Math.max(0.6, stackH * 0.6), 0);
+      const stackH = blocks.length * LAYER_H;
+      const radius = 4.6 + Math.max(0, stackH - 1.5) * 0.55;
+      camera.position.x = Math.sin(orbitAngle) * radius;
+      camera.position.z = Math.cos(orbitAngle) * radius;
+      camera.position.y = 2.6 + stackH * 0.5;
+      camera.lookAt(0, Math.max(0.8, stackH * 0.5), 0);
 
       const w = slot.width(), h = slot.height();
       if (camera.aspect !== w / h) {
@@ -186,16 +204,14 @@ const Tower3DGame = (function () {
 
   function spawnBlock(type, color, isCorrect) {
     const mesh   = ThreeEngine.makeMesh(type, color);
-    const stackY = blocks.length * 0.5 + 0.25;  // top of next slot
+    const stackY = blocks.length * LAYER_H + LAYER_H / 2;  // centre of next slot
 
     mesh.position.set(0, stackY + 4, 0);
     mesh.rotation.y = (Math.random() - 0.5) * 0.5;
 
-    // Slight pre-scale so small shapes still feel "blocky" when stacked
-    if (type === 'sphere')   mesh.scale.set(0.85, 0.5, 0.85);
-    if (type === 'cylinder') mesh.scale.set(0.95, 0.5, 0.95);
-    if (type === 'cone')     mesh.scale.set(0.95, 0.5, 0.95);
-    if (type === 'cube')     mesh.scale.set(1, 0.5, 1);
+    // Scale to a full-height block so shapes look solid, not squashed.
+    const [sx, sy, sz] = blockScale(type);
+    mesh.scale.set(sx, sy, sz);
 
     scene.add(mesh);
 

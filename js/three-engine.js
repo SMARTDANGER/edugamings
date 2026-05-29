@@ -20,6 +20,10 @@ const ThreeEngine = (function () {
       case 'cylinder': g = new T.CylinderGeometry(0.55, 0.55, 1.15, 24); break;
       case 'torus':    g = new T.TorusGeometry(0.55, 0.22, 16, 36); break;
       case 'pyramid':  g = new T.ConeGeometry(0.75, 1.3, 4); break;
+      case 'prism':       g = new T.CylinderGeometry(0.82, 0.82, 1.2, 3); break; // triangular prism
+      case 'hexprism':    g = new T.CylinderGeometry(0.72, 0.72, 1.1, 6); break; // hexagonal prism
+      case 'octahedron':  g = new T.OctahedronGeometry(0.85); break;
+      case 'tetrahedron': g = new T.TetrahedronGeometry(0.95); break;
       case 'block':    g = new T.BoxGeometry(1.4, 0.5, 1.4); break;
       case 'ground':   g = new T.CircleGeometry(2.6, 32); break;
       default:         g = new T.BoxGeometry(1, 1, 1);
@@ -28,7 +32,8 @@ const ThreeEngine = (function () {
     return g;
   }
 
-  const SHAPE_TYPES = ['cube', 'sphere', 'cone', 'cylinder', 'torus', 'pyramid'];
+  const SHAPE_TYPES = ['cube', 'sphere', 'cone', 'cylinder', 'torus', 'pyramid',
+                       'prism', 'hexprism', 'octahedron', 'tetrahedron'];
 
   function ensureRenderer() {
     if (renderer) return renderer;
