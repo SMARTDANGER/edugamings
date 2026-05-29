@@ -3,16 +3,20 @@
    ═══════════════════════════════════════ */
 
 const Particles = (function () {
-  const MAX = 18;
+  // Fewer particles on small screens / low-power devices.
+  const MAX = (window.innerWidth < 600 || navigator.hardwareConcurrency <= 4) ? 10 : 16;
   let canvas, ctx, particles = [], rafId, currentType = 'bubble';
+  let cssW = 0, cssH = 0;
+  let lastHueRead = 210;
+  let hueReadAt   = 0;
 
   // ── Particle class ──────────────────────────────────────────────
 
   function Particle() { this.reset(true); }
 
   Particle.prototype.reset = function (scatter) {
-    this.x    = Math.random() * (canvas ? canvas.width : 400);
-    this.y    = scatter ? Math.random() * (canvas ? canvas.height : 700) : -24;
+    this.x    = Math.random() * (cssW || 400);
+    this.y    = scatter ? Math.random() * (cssH || 700) : -24;
     this.size = 10 + Math.random() * 18;
     this.opacity = 0.25 + Math.random() * 0.45;
     this.vx   = (Math.random() - 0.5) * 0.7;
@@ -21,7 +25,7 @@ const Particles = (function () {
     this.phase = Math.random() * Math.PI * 2;
     this.rot   = Math.random() * Math.PI * 2;
     this.rotV  = (Math.random() - 0.5) * 0.04;
-    this.hue   = Spectrum ? Spectrum.hue : 210;
+    this.hue   = lastHueRead;
   };
 
   Particle.prototype.update = function () {
@@ -31,13 +35,13 @@ const Particles = (function () {
     this.y += this.vy;
 
     const offTop    = this.y < -this.size * 2;
-    const offBottom = this.y > canvas.height + this.size * 2;
+    const offBottom = this.y > cssH + this.size * 2;
     if (offTop || offBottom) {
       this.reset(false);
       if (currentType === 'star') {
-        this.y = -24;      // fall from top for stars
+        this.y = -24;
       } else {
-        this.y = canvas.height + 24; // rise from bottom for others
+        this.y = cssH + 24;
         this.vy = -(0.4 + Math.random() * 0.8);
       }
     }
@@ -161,35 +165,78 @@ const Particles = (function () {
 
   // ── Animation loop ──────────────────────────────────────────────
 
-  function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => {
-      p.hue = Spectrum ? Spectrum.hue : 210;
+  function animate(ts) {
+    if (paused) { rafId = null; return; }
+    // Read the hue once per frame instead of once per particle.
+    // Re-read at most every 250ms — hue changes are smoothed by 2s CSS
+    // transitions anyway, so finer granularity isn't visible.
+    if (ts - hueReadAt > 250) {
+      lastHueRead = (typeof Spectrum !== 'undefined') ? Spectrum.hue : 210;
+      hueReadAt = ts;
+    }
+    ctx.clearRect(0, 0, cssW, cssH);
+    for (let i = 0, n = particles.length; i < n; i++) {
+      const p = particles[i];
+      p.hue = lastHueRead;
       p.update();
       p.draw();
-    });
+    }
     rafId = requestAnimationFrame(animate);
   }
 
   // ── Public API ──────────────────────────────────────────────────
 
+  let paused = false;
+
   function init() {
     canvas = document.getElementById('particle-canvas');
-    ctx    = canvas.getContext('2d');
+    ctx    = canvas.getContext('2d', { alpha: true });
     resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', scheduleResize, { passive: true });
+    window.addEventListener('orientationchange', scheduleResize, { passive: true });
+
+    // Pause the canvas loop when the tab is hidden — no point burning
+    // CPU drawing particles nobody can see.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') pause();
+      else                                       resume();
+    });
 
     particles = [];
     for (let i = 0; i < MAX; i++) particles.push(new Particle());
 
     if (rafId) cancelAnimationFrame(rafId);
-    animate();
+    requestAnimationFrame(animate);
+  }
+
+  function pause() {
+    paused = true;
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  }
+
+  function resume() {
+    if (!paused) return;
+    paused = false;
+    if (!rafId) requestAnimationFrame(animate);
+  }
+
+  let resizeTimer = null;
+  function scheduleResize() {
+    if (resizeTimer) return;
+    resizeTimer = setTimeout(() => { resizeTimer = null; resize(); }, 120);
   }
 
   function resize() {
     if (!canvas) return;
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
+    // Cap DPR at 1.5 on mobile to keep the backing store small.
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    cssW = window.innerWidth;
+    cssH = window.innerHeight;
+    canvas.width  = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    canvas.style.width  = cssW + 'px';
+    canvas.style.height = cssH + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
   function setType(type) {
@@ -201,5 +248,5 @@ const Particles = (function () {
     });
   }
 
-  return { init, setType };
+  return { init, setType, pause, resume };
 })();
