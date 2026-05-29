@@ -2,8 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-  <title>EduGamings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0">
+  <meta name="description" content="A gentle, colorful learning playground for young children — counting, letters, colors, shapes, patterns, memory and early math.">
+  <meta name="theme-color" content="#7ec8e3">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="EduGamings">
+  <title>EduGamings — Learn &amp; Play</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+  <link rel="apple-touch-icon" href="assets/icon.svg">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -19,35 +27,45 @@
       </div>
     </div>
     <div class="game-grid">
-      <button class="game-card" data-game="numbers">
+      <button class="game-card" data-game="numbers" aria-label="Numbers game">
         <span class="card-icon">🔢</span>
         <div class="card-stars" id="stars-numbers"></div>
         <div class="crown-overlay" id="crown-numbers"></div>
       </button>
-      <button class="game-card" data-game="colors">
+      <button class="game-card" data-game="colors" aria-label="Colors game">
         <span class="card-icon">🎨</span>
         <div class="card-stars" id="stars-colors"></div>
         <div class="crown-overlay" id="crown-colors"></div>
       </button>
-      <button class="game-card" data-game="shapes">
+      <button class="game-card" data-game="shapes" aria-label="Shapes game">
         <span class="card-icon">⭐</span>
         <div class="card-stars" id="stars-shapes"></div>
         <div class="crown-overlay" id="crown-shapes"></div>
       </button>
-      <button class="game-card" data-game="puzzle">
+      <button class="game-card" data-game="puzzle" aria-label="Puzzle game">
         <span class="card-icon">🧩</span>
         <div class="card-stars" id="stars-puzzle"></div>
         <div class="crown-overlay" id="crown-puzzle"></div>
       </button>
-      <button class="game-card" data-game="memory">
+      <button class="game-card" data-game="memory" aria-label="Memory game">
         <span class="card-icon">🃏</span>
         <div class="card-stars" id="stars-memory"></div>
         <div class="crown-overlay" id="crown-memory"></div>
       </button>
-      <button class="game-card" data-game="patterns">
+      <button class="game-card" data-game="patterns" aria-label="Patterns game">
         <span class="card-icon">🌈</span>
         <div class="card-stars" id="stars-patterns"></div>
         <div class="crown-overlay" id="crown-patterns"></div>
+      </button>
+      <button class="game-card" data-game="letters" aria-label="Letters game">
+        <span class="card-icon">🔤</span>
+        <div class="card-stars" id="stars-letters"></div>
+        <div class="crown-overlay" id="crown-letters"></div>
+      </button>
+      <button class="game-card" data-game="add" aria-label="Add and take game">
+        <span class="card-icon">🧮</span>
+        <div class="card-stars" id="stars-add"></div>
+        <div class="crown-overlay" id="crown-add"></div>
       </button>
     </div>
   </div>
@@ -87,6 +105,8 @@
   <script src="js/games/puzzle.js"></script>
   <script src="js/games/memory.js"></script>
   <script src="js/games/patterns.js"></script>
+  <script src="js/games/letters.js"></script>
+  <script src="js/games/add.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

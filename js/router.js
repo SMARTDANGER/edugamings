@@ -135,6 +135,8 @@ const Router = (function () {
       puzzle:   typeof PuzzleGame   !== 'undefined' ? PuzzleGame   : null,
       memory:   typeof MemoryGame   !== 'undefined' ? MemoryGame   : null,
       patterns: typeof PatternsGame !== 'undefined' ? PatternsGame : null,
+      letters:  typeof LettersGame  !== 'undefined' ? LettersGame  : null,
+      add:      typeof AddGame      !== 'undefined' ? AddGame      : null,
     };
     return map[id];
   }

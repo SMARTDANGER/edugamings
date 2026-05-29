@@ -1,0 +1,19 @@
+{
+  "name": "EduGamings — Learn & Play",
+  "short_name": "EduGamings",
+  "description": "A gentle, colorful learning playground for young children — counting, letters, colors, shapes, patterns, memory and early math.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#dff1fb",
+  "theme_color": "#7ec8e3",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -4,18 +4,19 @@
 
 const MemoryGame = (function () {
 
+  // Unique emojis only — a duplicate would let cards from two different
+  // pairs match each other and break the win condition.
   const EMOJI_POOL = [
     '🐶','🐱','🐸','🦊','🐼','🦄','🐧','🦋',
     '🐝','🦕','🐳','🦒','🐘','🦁','🦀','🐙',
     '🦔','🐺','🦅','🐬','🌸','🍎','🍕','🎸',
-    '🚀','🌈','⚽','🎺','🏄','🎃','🦋','🌺',
+    '🚀','🌈','⚽','🎺','🏄','🎃','🌺','🍉',
   ];
 
   const CARD_BACKS = ['⭐','🌟','🎵','🎀'];
 
   const DIFFICULTY_WAVE = ['easy', 'medium', 'hard', 'medium'];
   const PAIRS_BY_DIFF = { easy: 4, medium: 6, hard: 8 };
-  const COLS_BY_DIFF  = { easy: 4, medium: 4, hard: 4 };
 
   let container, callbacks;
   let cards      = [];    // { emoji, id, matched, flipped }
@@ -77,7 +78,6 @@ const MemoryGame = (function () {
   // ── Render ───────────────────────────────────────────────────────
 
   function render() {
-    const diff = getDifficulty(0);
     const cols = Math.ceil(Math.sqrt(cards.length));
 
     container.innerHTML = `

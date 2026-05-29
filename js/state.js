@@ -11,11 +11,13 @@ const State = (function () {
     currentPhase: 'cool',
     gameRoundCounts: {
       numbers: 0, colors: 0, shapes: 0,
-      puzzle: 0, memory: 0, patterns: 0
+      puzzle: 0, memory: 0, patterns: 0,
+      letters: 0, add: 0
     },
     starsPerGame: {
       numbers: 0, colors: 0, shapes: 0,
-      puzzle: 0, memory: 0, patterns: 0
+      puzzle: 0, memory: 0, patterns: 0,
+      letters: 0, add: 0
     },
     totalPlayTime: 0,
     lastSessionDate: '',
