@@ -3,7 +3,7 @@
    ═══════════════════════════════════════ */
 
 const Home = (function () {
-  const GAME_IDS = ['numbers', 'colors', 'shapes', 'puzzle', 'memory', 'patterns'];
+  const GAME_IDS = ['numbers', 'colors', 'shapes', 'puzzle', 'memory', 'patterns', 'shapes3d', 'tower3d'];
 
   function render() {
     const stateData = State.get();

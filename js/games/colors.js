@@ -13,14 +13,37 @@ const ColorsGame = (function () {
     { name: 'purple', bg: '#9944FF', label: '🟣' },
   ];
 
-  const OBJECT_SHAPES = ['💧','⭐','❤️','🫧','🍃'];
+  // Hollow outline shapes — fill: none so the falling-object's
+  // background color shows through the empty interior.
+  const OBJECT_SHAPES = [
+    // circle
+    '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" fill="none" stroke="white" stroke-width="3.5" stroke-linejoin="round"/></svg>',
+    // rounded square
+    '<svg viewBox="0 0 40 40"><rect x="6" y="6" width="28" height="28" rx="5" fill="none" stroke="white" stroke-width="3.5" stroke-linejoin="round"/></svg>',
+    // triangle
+    '<svg viewBox="0 0 40 40"><polygon points="20,5 35,33 5,33" fill="none" stroke="white" stroke-width="3.5" stroke-linejoin="round"/></svg>',
+    // 5-point star
+    '<svg viewBox="0 0 40 40"><polygon points="20,4 24.5,15 36,15.5 27,23 30,34 20,27 10,34 13,23 4,15.5 15.5,15" fill="none" stroke="white" stroke-width="2.8" stroke-linejoin="round"/></svg>',
+    // heart
+    '<svg viewBox="0 0 40 40"><path d="M20 33 C5 22 6 11 13 10 C17 9.5 20 13 20 13 C20 13 23 9.5 27 10 C34 11 35 22 20 33 Z" fill="none" stroke="white" stroke-width="3" stroke-linejoin="round"/></svg>',
+    // diamond
+    '<svg viewBox="0 0 40 40"><polygon points="20,4 35,20 20,36 5,20" fill="none" stroke="white" stroke-width="3.5" stroke-linejoin="round"/></svg>',
+    // hexagon
+    '<svg viewBox="0 0 40 40"><polygon points="20,4 34,12.5 34,27.5 20,36 6,27.5 6,12.5" fill="none" stroke="white" stroke-width="3" stroke-linejoin="round"/></svg>',
+    // 4-petal flower
+    '<svg viewBox="0 0 40 40"><g fill="none" stroke="white" stroke-width="3" stroke-linejoin="round"><circle cx="20" cy="11" r="5"/><circle cx="20" cy="29" r="5"/><circle cx="11" cy="20" r="5"/><circle cx="29" cy="20" r="5"/></g></svg>',
+    // crescent moon
+    '<svg viewBox="0 0 40 40"><path d="M28 8 A14 14 0 1 0 28 32 A11 11 0 1 1 28 8 Z" fill="none" stroke="white" stroke-width="3" stroke-linejoin="round"/></svg>',
+    // lightning bolt
+    '<svg viewBox="0 0 40 40"><polygon points="22,4 9,22 19,22 16,36 31,17 21,17 24,4" fill="none" stroke="white" stroke-width="3" stroke-linejoin="round"/></svg>',
+  ];
 
   let container, callbacks, options;
   let rafId = null;
   let score = 0, needed = 8;
   let activeColors = [];
-  let objectShape  = '💧';
   let fallingEl    = null;
+  let fallingArea  = null;
   let fallingColor = null;
   let fallingX     = 0;
   let fallingY     = 0;
@@ -28,6 +51,7 @@ const ColorsGame = (function () {
   let windDrift    = 0;
   let areaH        = 0;
   let areaW        = 0;
+  let resizeObs    = null;
   let blocked      = false;
   let isRunning    = false;
 
@@ -62,7 +86,6 @@ const ColorsGame = (function () {
     const diff    = getDifficulty(opts.round || 0);
     const count   = getColorCount(diff);
     activeColors  = shuffle(GAME_COLORS).slice(0, count);
-    objectShape   = OBJECT_SHAPES[Math.floor((opts.round || 0) / 3) % OBJECT_SHAPES.length];
 
     fallingSpeed  = diff === 'easy' ? 1.0 : diff === 'medium' ? 1.5 : 2.2;
     needed        = diff === 'easy' ? 6 : 8;
@@ -90,33 +113,47 @@ const ColorsGame = (function () {
       </div>
     `;
 
+    fallingArea = document.getElementById('colors-falling-area');
+    measureArea();
+
+    // Re-measure only when the area itself resizes (orientation change,
+    // address-bar collapse, etc.) — not on every animation frame.
+    if (resizeObs) resizeObs.disconnect();
+    if (window.ResizeObserver && fallingArea) {
+      resizeObs = new ResizeObserver(measureArea);
+      resizeObs.observe(fallingArea);
+    }
+
     document.querySelectorAll('.color-bucket').forEach(btn => {
       btn.addEventListener('click', () => handleBucket(btn.dataset.color));
     });
   }
 
+  function measureArea() {
+    if (!fallingArea) return;
+    areaW = fallingArea.clientWidth;
+    areaH = fallingArea.clientHeight;
+  }
+
   // ── Falling object ───────────────────────────────────────────────
 
   function spawnObject() {
-    if (!isRunning) return;
-    const area = document.getElementById('colors-falling-area');
-    if (!area) return;
-
-    areaH = area.clientHeight;
-    areaW = area.clientWidth;
+    if (!isRunning || !fallingArea) return;
 
     fallingColor = activeColors[Math.floor(Math.random() * activeColors.length)];
     fallingX = 40 + Math.random() * Math.max(1, areaW - 80);
     fallingY = -30;
     windDrift = (Math.random() - 0.5) * 0.6;
 
+    const shape = OBJECT_SHAPES[Math.floor(Math.random() * OBJECT_SHAPES.length)];
+
     fallingEl = document.createElement('div');
     fallingEl.className = 'falling-object';
-    fallingEl.textContent = objectShape;
+    fallingEl.innerHTML = shape;
     fallingEl.style.background = fallingColor.bg;
-    fallingEl.style.left = fallingX + 'px';
-    fallingEl.style.top  = fallingY + 'px';
-    area.appendChild(fallingEl);
+    // Use transform (composited) instead of left/top (layout)
+    fallingEl.style.transform = `translate3d(${fallingX}px, ${fallingY}px, 0)`;
+    fallingArea.appendChild(fallingEl);
 
     if (rafId) cancelAnimationFrame(rafId);
     drop();
@@ -124,17 +161,14 @@ const ColorsGame = (function () {
 
   function drop() {
     if (!isRunning || !fallingEl) return;
-    const area = document.getElementById('colors-falling-area');
-    if (!area) return;
-
-    areaH = area.clientHeight;
-    areaW = area.clientWidth;
 
     fallingY += fallingSpeed;
-    fallingX = Math.max(0, Math.min(areaW - 56, fallingX + windDrift));
+    const maxX = areaW - 56;
+    fallingX += windDrift;
+    if (fallingX < 0)    fallingX = 0;
+    if (fallingX > maxX) fallingX = maxX;
 
-    fallingEl.style.top  = fallingY + 'px';
-    fallingEl.style.left = fallingX + 'px';
+    fallingEl.style.transform = `translate3d(${fallingX}px, ${fallingY}px, 0)`;
 
     if (fallingY > areaH + 20) {
       // Missed — respawn
@@ -191,7 +225,9 @@ const ColorsGame = (function () {
   function cleanup() {
     isRunning = false;
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    if (resizeObs) { resizeObs.disconnect(); resizeObs = null; }
     fallingEl = null;
+    fallingArea = null;
   }
 
   return { start, cleanup };

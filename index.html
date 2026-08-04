@@ -49,6 +49,16 @@
         <div class="card-stars" id="stars-patterns"></div>
         <div class="crown-overlay" id="crown-patterns"></div>
       </button>
+      <button class="game-card" data-game="shapes3d">
+        <span class="card-icon">🔷</span>
+        <div class="card-stars" id="stars-shapes3d"></div>
+        <div class="crown-overlay" id="crown-shapes3d"></div>
+      </button>
+      <button class="game-card" data-game="tower3d">
+        <span class="card-icon">🧱</span>
+        <div class="card-stars" id="stars-tower3d"></div>
+        <div class="crown-overlay" id="crown-tower3d"></div>
+      </button>
     </div>
   </div>
 
@@ -87,6 +97,8 @@
   <script src="js/games/puzzle.js"></script>
   <script src="js/games/memory.js"></script>
   <script src="js/games/patterns.js"></script>
+  <!-- Three.js + 3D games are loaded on-demand by Router when a 3D card
+       is opened, so first-paint stays light. -->
   <script src="js/main.js"></script>
 </body>
 </html>

@@ -20,11 +20,32 @@
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Spectrum-hue color fade: scoped to elements whose background/border
+   actually depends on the hue variable. Box-shadow is deliberately not
+   transitioned — it forces a full repaint each frame. */
+body,
+.game-card,
+.btn-nav,
+.game-header,
+.animals-display,
+.falling-area,
+.color-buckets,
+.color-bucket,
+.shape-prompt,
+.shape-choice-btn,
+.choice-btn,
+.number-btn,
+.pattern-row,
+.pattern-item,
+.pattern-choice-btn,
+.puzzle-board,
+.memory-card-front {
   transition:
-    background-color 4s ease,
-    color 4s ease,
-    border-color 4s ease,
-    box-shadow 4s ease;
+    background-color 2s ease,
+    border-color 2s ease,
+    color 2s ease;
 }
 
 /* ═══════════════════════════════════════
@@ -75,6 +96,13 @@ body {
 .screen.active {
   opacity: 1;
   pointer-events: all;
+}
+
+/* Pause ALL animations on screens that aren't visible — saves CPU
+   on the cards/icons/mascot etc. while the player is mid-game. */
+.screen:not(.active),
+.screen:not(.active) * {
+  animation-play-state: paused !important;
 }
 
 /* ═══════════════════════════════════════
@@ -140,6 +168,26 @@ body {
   justify-content: center;
 }
 
+.mascot-container::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(5rem, 22vw, 9rem);
+  height: clamp(5rem, 22vw, 9rem);
+  border-radius: 50%;
+  background: radial-gradient(circle, hsla(var(--spectrum-hue), 90%, 75%, 0.45) 0%, transparent 65%);
+  transform: translate(-50%, -50%);
+  animation: mascot-halo 4s ease-in-out infinite;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@keyframes mascot-halo {
+  0%, 100% { transform: translate(-50%, -50%) scale(1);   opacity: 0.6; }
+  50%      { transform: translate(-50%, -50%) scale(1.2); opacity: 1;   }
+}
+
 .mascot {
   font-size: clamp(3rem, 12vw, 5rem);
   display: block;
@@ -147,11 +195,15 @@ body {
   filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
   cursor: default;
   user-select: none;
+  will-change: transform;
 }
 
 @keyframes mascot-float {
-  0%, 100% { transform: translateY(0) rotate(-2deg); }
-  50% { transform: translateY(-10px) rotate(2deg); }
+  0%   { transform: translateY(0)    rotate(-4deg) scale(1);    }
+  25%  { transform: translateY(-6px) rotate(2deg)  scale(1.04); }
+  50%  { transform: translateY(-12px) rotate(4deg) scale(1.06); }
+  75%  { transform: translateY(-6px) rotate(-2deg) scale(1.04); }
+  100% { transform: translateY(0)    rotate(-4deg) scale(1);    }
 }
 
 .mascot.sparkle {
@@ -171,7 +223,7 @@ body {
 .game-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 10px;
   width: 100%;
   max-width: 480px;
   padding-bottom: 16px;
@@ -179,46 +231,159 @@ body {
 
 .game-card {
   position: relative;
-  background: var(--color-primary);
+  background:
+    linear-gradient(135deg,
+      hsla(0, 0%, 100%, 0.35) 0%,
+      hsla(0, 0%, 100%, 0) 45%),
+    linear-gradient(160deg,
+      var(--color-primary) 0%,
+      hsl(var(--spectrum-hue), 80%, 50%) 100%);
   border: 3px solid var(--color-secondary);
-  border-radius: 24px;
+  border-radius: 26px;
   padding: 20px 12px 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 16px hsla(var(--spectrum-hue), 60%, 40%, 0.3);
-  transition:
-    transform 0.15s ease,
-    background-color 4s ease,
-    border-color 4s ease,
-    box-shadow 4s ease !important;
+  box-shadow:
+    0 6px 20px hsla(var(--spectrum-hue), 60%, 40%, 0.35),
+    inset 0 2px 0 hsla(0, 0%, 100%, 0.4),
+    inset 0 -3px 8px hsla(var(--spectrum-hue), 60%, 25%, 0.25);
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
   min-height: 120px;
   justify-content: center;
+  overflow: hidden;
+  isolation: isolate;
+  contain: layout paint;
+  will-change: transform;
+  animation:
+    card-enter 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) backwards,
+    card-breathe 5s ease-in-out infinite;
+}
+
+.game-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg,
+    transparent 35%,
+    hsla(0, 0%, 100%, 0.45) 50%,
+    transparent 65%);
+  transform: translateX(-110%);
+  animation: card-shine 5.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .game-card:active {
-  transform: scale(0.94);
+  transform: scale(0.92) rotate(-1deg);
+  box-shadow:
+    0 2px 8px hsla(var(--spectrum-hue), 60%, 40%, 0.3),
+    inset 0 2px 0 hsla(0, 0%, 100%, 0.4);
 }
 
-.game-card:nth-child(2) { background: var(--color-secondary); border-color: var(--color-accent); }
-.game-card:nth-child(3) { background: var(--color-accent); border-color: var(--color-warm); }
-.game-card:nth-child(4) { background: var(--color-warm); border-color: var(--color-soft); }
-.game-card:nth-child(5) { background: var(--color-soft); border-color: var(--color-deep); }
-.game-card:nth-child(6) { background: var(--color-deep); border-color: var(--color-primary); }
+.game-card:nth-child(1) { animation-delay: 0.00s, 0.8s; }
+.game-card:nth-child(2) {
+  background:
+    linear-gradient(135deg, hsla(0, 0%, 100%, 0.35) 0%, hsla(0, 0%, 100%, 0) 45%),
+    linear-gradient(160deg, var(--color-secondary) 0%, hsl(calc(var(--spectrum-hue) + 40), 75%, 55%) 100%);
+  border-color: var(--color-accent);
+  animation-delay: 0.07s, 1.2s;
+}
+.game-card:nth-child(3) {
+  background:
+    linear-gradient(135deg, hsla(0, 0%, 100%, 0.35) 0%, hsla(0, 0%, 100%, 0) 45%),
+    linear-gradient(160deg, var(--color-accent) 0%, hsl(calc(var(--spectrum-hue) + 80), 85%, 45%) 100%);
+  border-color: var(--color-warm);
+  animation-delay: 0.14s, 1.6s;
+}
+.game-card:nth-child(4) {
+  background:
+    linear-gradient(135deg, hsla(0, 0%, 100%, 0.35) 0%, hsla(0, 0%, 100%, 0) 45%),
+    linear-gradient(160deg, var(--color-warm) 0%, hsl(calc(var(--spectrum-hue) + 120), 70%, 50%) 100%);
+  border-color: var(--color-soft);
+  animation-delay: 0.21s, 2.0s;
+}
+.game-card:nth-child(5) {
+  background:
+    linear-gradient(135deg, hsla(0, 0%, 100%, 0.35) 0%, hsla(0, 0%, 100%, 0) 45%),
+    linear-gradient(160deg, var(--color-soft) 0%, hsl(calc(var(--spectrum-hue) + 160), 60%, 65%) 100%);
+  border-color: var(--color-deep);
+  animation-delay: 0.28s, 2.4s;
+}
+.game-card:nth-child(6) {
+  background:
+    linear-gradient(135deg, hsla(0, 0%, 100%, 0.35) 0%, hsla(0, 0%, 100%, 0) 45%),
+    linear-gradient(160deg, var(--color-deep) 0%, hsl(calc(var(--spectrum-hue) + 200), 75%, 35%) 100%);
+  border-color: var(--color-primary);
+  animation-delay: 0.35s, 2.8s;
+}
+.game-card:nth-child(7) {
+  background:
+    linear-gradient(135deg, hsla(0, 0%, 100%, 0.35) 0%, hsla(0, 0%, 100%, 0) 45%),
+    linear-gradient(160deg, hsl(calc(var(--spectrum-hue) + 240), 80%, 55%) 0%, hsl(calc(var(--spectrum-hue) + 280), 70%, 45%) 100%);
+  border-color: var(--color-secondary);
+  animation-delay: 0.42s, 3.2s;
+}
+.game-card:nth-child(8) {
+  background:
+    linear-gradient(135deg, hsla(0, 0%, 100%, 0.35) 0%, hsla(0, 0%, 100%, 0) 45%),
+    linear-gradient(160deg, hsl(calc(var(--spectrum-hue) + 320), 75%, 60%) 0%, hsl(calc(var(--spectrum-hue) + 350), 80%, 50%) 100%);
+  border-color: var(--color-warm);
+  animation-delay: 0.49s, 3.6s;
+}
+
+@keyframes card-enter {
+  0%   { opacity: 0; transform: translateY(28px) scale(0.85) rotate(-3deg); }
+  60%  { opacity: 1; transform: translateY(-4px) scale(1.04) rotate(1deg); }
+  100% { opacity: 1; transform: translateY(0)    scale(1)    rotate(0); }
+}
+
+@keyframes card-breathe {
+  0%, 100% { transform: translateY(0)    scale(1); }
+  50%      { transform: translateY(-3px) scale(1.02); }
+}
+
+@keyframes card-shine {
+  0%, 60%, 100% { transform: translateX(-110%); }
+  75%, 85%      { transform: translateX(110%);  }
+}
 
 .card-icon {
-  font-size: clamp(2.5rem, 10vw, 3.5rem);
+  font-size: clamp(2.8rem, 11vw, 4rem);
   line-height: 1;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  filter:
+    drop-shadow(0 3px 6px rgba(0,0,0,0.25))
+    drop-shadow(0 0 12px hsla(0, 0%, 100%, 0.3));
   transition: none !important;
+  animation: icon-wiggle 4s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
+}
+
+.game-card:nth-child(1) .card-icon { animation-delay: 0.0s; }
+.game-card:nth-child(2) .card-icon { animation-delay: 0.3s; }
+.game-card:nth-child(3) .card-icon { animation-delay: 0.6s; }
+.game-card:nth-child(4) .card-icon { animation-delay: 0.9s; }
+.game-card:nth-child(5) .card-icon { animation-delay: 1.2s; }
+.game-card:nth-child(6) .card-icon { animation-delay: 1.5s; }
+.game-card:nth-child(7) .card-icon { animation-delay: 1.8s; }
+.game-card:nth-child(8) .card-icon { animation-delay: 2.1s; }
+
+@keyframes icon-wiggle {
+  0%, 100% { transform: rotate(-4deg) scale(1); }
+  25%      { transform: rotate(4deg)  scale(1.06); }
+  50%      { transform: rotate(-2deg) scale(1.02); }
+  75%      { transform: rotate(2deg)  scale(1.04); }
 }
 
 .card-stars {
   display: flex;
   gap: 3px;
   min-height: 18px;
+  position: relative;
+  z-index: 2;
   transition: none !important;
 }
 
@@ -242,6 +407,8 @@ body {
   transform: translateX(-50%);
   font-size: 1.4rem;
   opacity: 0;
+  z-index: 3;
+  filter: drop-shadow(0 2px 6px gold);
   transition: opacity 0.4s ease !important;
   pointer-events: none;
 }
@@ -280,11 +447,8 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: max(env(safe-area-inset-top, 0px), 10px) 16px 8px;
-  background: hsla(var(--spectrum-hue), 60%, 95%, 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: hsla(var(--spectrum-hue), 60%, 95%, 0.92);
   border-bottom: 2px solid var(--color-soft);
-  transition: background-color 4s ease, border-color 4s ease !important;
   flex-shrink: 0;
   z-index: 2;
 }
@@ -301,7 +465,7 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  transition: transform 0.1s ease, background-color 4s ease, border-color 4s ease !important;
+  transition: transform 0.1s ease, background-color 2s ease, border-color 2s ease !important;
 }
 
 .btn-nav:active { transform: scale(0.9); }
@@ -354,7 +518,7 @@ body {
   font-size: 1.5rem;
   font-weight: bold;
   cursor: pointer;
-  transition: transform 0.1s ease, background-color 4s ease, border-color 4s ease !important;
+  transition: transform 0.1s ease, background-color 2s ease, border-color 2s ease !important;
   min-width: 80px;
   text-align: center;
   box-shadow: 0 3px 10px rgba(0,0,0,0.15);
@@ -431,6 +595,63 @@ body {
   100% { transform: scale(1) rotate(0); }
 }
 
+/* Addition / subtraction layout — CSS grid keeps it from overflowing */
+.math-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.math-side {
+  width: auto;
+  min-width: 0;
+  min-height: 90px;
+  padding: 6px;
+  overflow: hidden;
+}
+
+.math-side .animal {
+  font-size: clamp(1.2rem, 5.5vw, 2rem);
+}
+
+.math-op {
+  font-size: clamp(1.4rem, 6vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1;
+  padding: 0 2px;
+  color: var(--color-deep);
+  user-select: none;
+}
+
+.op-add { color: #2e7d32; }
+.op-sub { color: #c62828; }
+
+.math-question {
+  font-size: clamp(1.8rem, 9vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1;
+  width:  clamp(48px, 14vw, 64px);
+  height: clamp(48px, 14vw, 64px);
+  border-radius: 50%;
+  background: hsla(var(--spectrum-hue), 60%, 95%, 0.85);
+  border: 3px dashed var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-deep);
+  animation: q-pulse 1.5s ease-in-out infinite;
+  flex: 0 0 auto;
+}
+
+@keyframes q-pulse {
+  0%, 100% { transform: scale(1);    }
+  50%      { transform: scale(1.06); }
+}
+
 .number-choices {
   display: flex;
   gap: 16px;
@@ -453,7 +674,7 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   color: white;
   text-shadow: 0 1px 3px rgba(0,0,0,0.3);
-  transition: transform 0.1s ease, background-color 4s ease, border-color 4s ease !important;
+  transition: transform 0.1s ease, background-color 2s ease, border-color 2s ease !important;
 }
 
 .number-btn:active { transform: scale(0.9); }
@@ -487,8 +708,6 @@ body {
 
 .falling-object {
   position: absolute;
-  font-size: 2.8rem;
-  line-height: 1;
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -499,8 +718,16 @@ body {
   border: 3px solid rgba(255,255,255,0.5);
   user-select: none;
   pointer-events: none;
-  transition: opacity 0.25s ease !important;
+  will-change: transform, opacity;
+  transition: opacity 0.25s ease;
 }
+
+.falling-object svg {
+  width: 72%;
+  height: 72%;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
+}
+
 
 .progress-bar {
   width: 100%;
@@ -626,7 +853,7 @@ body {
   justify-content: center;
   box-shadow: 0 3px 10px rgba(0,0,0,0.15);
   min-height: 90px;
-  transition: transform 0.1s ease, background-color 4s ease, border-color 4s ease !important;
+  transition: transform 0.1s ease, background-color 2s ease, border-color 2s ease !important;
   line-height: 1;
 }
 
@@ -653,12 +880,23 @@ body {
   gap: 6px;
 }
 
-.puzzle-preview-label {
-  font-size: 0.85rem;
-  color: var(--color-deep);
-  font-weight: 600;
-  opacity: 0.7;
+.puzzle-arrow {
+  font-size: 1.8rem;
+  line-height: 1;
+  animation: puzzle-arrow-bounce 1.4s ease-in-out infinite;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
+  user-select: none;
   transition: none !important;
+}
+
+@keyframes puzzle-arrow-bounce {
+  0%, 100% { transform: translateY(0)   scale(1);    }
+  50%      { transform: translateY(8px) scale(1.15); }
+}
+
+@keyframes puzzle-arrow-bounce-h {
+  0%, 100% { transform: rotate(-90deg) translateY(0)   scale(1);    }
+  50%      { transform: rotate(-90deg) translateY(8px) scale(1.15); }
 }
 
 .puzzle-preview-grid {
@@ -672,14 +910,13 @@ body {
 }
 
 .preview-cell {
-  width: 32px;
-  height: 32px;
+  aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: clamp(0.7rem, 60cqw, 1.2rem);
+  container-type: inline-size;
   line-height: 1;
-  transition: none !important;
 }
 
 .puzzle-board {
@@ -703,10 +940,35 @@ body {
   line-height: 1;
   border: 3px solid rgba(255,255,255,0.5);
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
-  cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.2s ease !important;
+  cursor: grab;
+  transition: transform 0.15s ease, border-color 0.2s ease;
   user-select: none;
+  touch-action: none;
   aspect-ratio: 1;
+  will-change: transform;
+  contain: layout paint;
+}
+
+.puzzle-piece:active { cursor: grabbing; }
+
+.puzzle-piece.drag-source {
+  opacity: 0.3;
+  transform: scale(0.92);
+}
+
+.puzzle-piece.drop-target {
+  border-color: white !important;
+  box-shadow: 0 0 0 4px rgba(255,255,255,0.7), 0 0 18px rgba(255,255,255,0.6), 0 3px 8px rgba(0,0,0,0.2) !important;
+  transform: scale(1.05);
+}
+
+.puzzle-piece.drag-ghost {
+  pointer-events: none !important;
+  z-index: 9999;
+  opacity: 0.95;
+  transform: scale(1.12) rotate(-3deg);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35), 0 0 18px rgba(255,255,255,0.4) !important;
+  transition: none !important;
 }
 
 .puzzle-piece.selected {
@@ -755,6 +1017,7 @@ body {
   cursor: pointer;
   position: relative;
   perspective: 600px;
+  container-type: inline-size;
   transition: none !important;
 }
 
@@ -763,8 +1026,9 @@ body {
   height: 100%;
   position: relative;
   transform-style: preserve-3d;
-  transition: transform 0.4s ease !important;
+  transition: transform 0.4s ease;
   border-radius: 16px;
+  will-change: transform;
 }
 
 .memory-card.flipped .memory-card-inner {
@@ -783,7 +1047,7 @@ body {
   -webkit-backface-visibility: hidden;
   border: 3px solid rgba(255,255,255,0.4);
   box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-  transition: background-color 4s ease, border-color 4s ease !important;
+  transition: background-color 2s ease, border-color 2s ease !important;
 }
 
 .memory-card-front {
@@ -793,7 +1057,7 @@ body {
 .memory-card-back {
   background: white;
   transform: rotateY(180deg);
-  font-size: clamp(1.8rem, 7vw, 2.8rem);
+  font-size: 62cqw;
   line-height: 1;
   transition: none !important;
 }
@@ -814,7 +1078,7 @@ body {
 }
 
 .memory-card-front .card-back-pattern {
-  font-size: clamp(1.5rem, 6vw, 2.2rem);
+  font-size: 48cqw;
   opacity: 0.7;
   transition: none !important;
 }
@@ -894,7 +1158,7 @@ body {
   justify-content: center;
   box-shadow: 0 3px 10px rgba(0,0,0,0.15);
   line-height: 1;
-  transition: transform 0.1s ease, background-color 4s ease, border-color 4s ease !important;
+  transition: transform 0.1s ease, background-color 2s ease, border-color 2s ease !important;
 }
 
 .pattern-choice-btn:active { transform: scale(0.9); }
@@ -1020,4 +1284,517 @@ body {
 @keyframes bonus-float {
   0%, 100% { transform: translateY(0) scale(1); }
   50% { transform: translateY(-6px) scale(1.1); }
+}
+
+/* ═══════════════════════════════════════
+   3D SHAPES GAME
+   ═══════════════════════════════════════ */
+
+.shapes3d-game {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+
+.shapes3d-main {
+  width: 100%;
+  flex: 1 1 0;
+  min-height: 180px;
+  border-radius: 24px;
+  background: hsla(var(--spectrum-hue), 50%, 95%, 0.55);
+  border: 3px solid var(--color-soft);
+  overflow: hidden;
+  box-shadow: inset 0 4px 16px rgba(0,0,0,0.08);
+  will-change: contents;
+}
+
+.shapes3d-prompt {
+  display: none;  /* the rotating 3D shape IS the prompt */
+}
+
+.shapes3d-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));
+  gap: 10px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.shapes3d-choice {
+  background: hsla(0, 0%, 100%, 0.65);
+  border: 3px solid var(--color-accent);
+  border-radius: 20px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+  transition: transform 0.12s ease;
+  will-change: transform;
+}
+
+.shapes3d-choice:active { transform: scale(0.93); }
+.shapes3d-choice.correct {
+  background: #4caf50 !important;
+  border-color: #2e7d32 !important;
+  animation: correct-bounce 0.4s ease;
+}
+.shapes3d-choice.wrong {
+  background: #f44336 !important;
+  border-color: #b71c1c !important;
+  animation: wrong-shake 0.4s ease;
+}
+
+.s3d-icon {
+  width: 80%;
+  height: 80%;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+}
+
+/* ═══════════════════════════════════════
+   3D TOWER GAME — build the target structure
+   ═══════════════════════════════════════ */
+
+.tower3d-game {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.tower3d-target {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 12px;
+  background: hsla(0, 0%, 100%, 0.6);
+  border: 3px solid var(--color-accent);
+  border-radius: 18px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+  flex-shrink: 0;
+  max-height: 32vh;
+  overflow: hidden;
+}
+
+.tower3d-target-slot {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: hsla(0, 0%, 100%, 0.6);
+  transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+}
+
+.tower3d-target-slot.is-done {
+  opacity: 0.45;
+  background: hsla(140, 60%, 80%, 0.5);
+}
+
+.tower3d-target-slot.is-next {
+  background: hsla(50, 90%, 70%, 0.6);
+  outline: 3px solid #ffb300;
+  outline-offset: -1px;
+  animation: tower3d-next-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes tower3d-next-pulse {
+  0%, 100% { transform: scale(1);    }
+  50%      { transform: scale(1.12); }
+}
+
+.tower3d-stage {
+  width: 100%;
+  flex: 1 1 0;
+  min-height: 180px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, hsla(var(--spectrum-hue), 60%, 95%, 0.4) 0%, hsla(var(--spectrum-hue), 60%, 85%, 0.5) 100%);
+  border: 3px solid var(--color-soft);
+  overflow: hidden;
+}
+
+.tower3d-shape-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  gap: 10px;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.tower3d-choice {
+  background: hsla(0, 0%, 100%, 0.8);
+  border: 3px solid var(--color-accent);
+  border-radius: 18px;
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  transition: transform 0.12s ease;
+  will-change: transform;
+}
+
+.tower3d-choice:active { transform: scale(0.92); }
+
+.tower3d-choice.shake {
+  animation: wrong-shake 0.4s ease;
+}
+
+/* ═══════════════════════════════════════
+   LANDSCAPE PHONE — fit screen, no scroll
+   ═══════════════════════════════════════ */
+
+@media (orientation: landscape) and (max-height: 600px) {
+
+  html, body {
+    overflow: hidden;
+    height: 100%;
+    height: 100dvh;
+    overscroll-behavior: none;
+    touch-action: pan-x pan-y;
+  }
+
+  .screen {
+    overflow: hidden;
+    justify-content: center;
+    padding-bottom: 0;
+    height: 100dvh;
+  }
+
+  /* HOME — 6 cards in a single row, mascot to the side */
+  #screen-home {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 6px 10px;
+    overflow: hidden;
+  }
+
+  .home-header {
+    width: auto;
+    padding-top: 0;
+    padding-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .mascot {
+    font-size: clamp(2rem, 9vh, 3.2rem);
+  }
+
+  .mascot-container::before {
+    width: clamp(3.5rem, 14vh, 5.5rem);
+    height: clamp(3.5rem, 14vh, 5.5rem);
+  }
+
+  .game-grid {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 6px;
+    max-width: none;
+    width: auto;
+    flex: 1;
+    padding-bottom: 0;
+    align-items: stretch;
+    align-content: stretch;
+    justify-content: stretch;
+    height: 100%;
+  }
+
+  .game-card {
+    min-height: 0;
+    height: auto;
+    padding: 4px;
+    border-radius: 14px;
+    gap: 2px;
+  }
+  .game-card .card-icon {
+    font-size: clamp(1.2rem, 5dvh, 2rem);
+  }
+
+  /* Game screen container */
+  #screen-game {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .card-icon {
+    font-size: clamp(1.6rem, 6vh, 2.4rem);
+  }
+
+  .card-star {
+    font-size: 9px;
+  }
+
+  .card-stars {
+    min-height: 12px;
+    gap: 2px;
+  }
+
+  .crown-overlay {
+    font-size: 0.9rem;
+    top: -10px;
+  }
+
+  /* GAME SCREEN — compact header */
+  .game-header {
+    padding: 4px 12px;
+  }
+
+  .btn-nav {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+
+  .round-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .game-content {
+    padding: 8px 12px;
+    gap: 8px;
+    overflow: hidden;
+    min-height: 0;
+    flex: 1;
+  }
+
+  /* NUMBERS */
+  .numbers-game {
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+    justify-content: center;
+  }
+  .animals-display {
+    min-height: 0;
+    height: auto;
+    flex: 1;
+    padding: 6px;
+    gap: 4px;
+  }
+  .animal { font-size: clamp(1.2rem, 5.5dvh, 1.8rem); }
+  .number-choices { gap: 8px; flex-shrink: 0; }
+  .number-btn {
+    width: clamp(40px, 10dvh, 56px);
+    height: clamp(40px, 10dvh, 56px);
+    font-size: clamp(0.9rem, 4dvh, 1.3rem);
+  }
+  .math-row { gap: 6px; }
+  .math-side {
+    min-height: 60px;
+    min-width: 0;
+    padding: 4px;
+  }
+  .math-op {
+    font-size: clamp(1.4rem, 5.5dvh, 2rem);
+    padding: 0;
+  }
+
+  /* COLORS — falling game */
+  .colors-game {
+    height: 100%;
+    flex: 1;
+    min-height: 0;
+  }
+  .falling-object {
+    width: 38px;
+    height: 38px;
+  }
+  .color-bucket {
+    width: clamp(36px, 9dvh, 50px);
+    height: clamp(36px, 9dvh, 50px);
+    font-size: 1rem;
+  }
+  .color-buckets { padding: 5px; gap: 6px; }
+
+  /* SHAPES */
+  .shapes-game {
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+    justify-content: center;
+  }
+  .shape-prompt {
+    padding: 6px 12px;
+    gap: 6px;
+    flex-direction: row;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .shape-prompt-label { font-size: 0.8rem; }
+  .shape-display { font-size: clamp(1.8rem, 8dvh, 3rem); }
+  .shape-choices {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .shape-choice-btn {
+    min-height: 0;
+    height: clamp(44px, 11dvh, 64px);
+    padding: 4px;
+    font-size: clamp(1.4rem, 5.5dvh, 2.2rem);
+  }
+
+  /* PUZZLE */
+  .puzzle-game {
+    gap: 10px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 0;
+  }
+  .puzzle-preview { gap: 4px; flex-shrink: 0; }
+  .puzzle-arrow {
+    font-size: 1.4rem;
+    animation: puzzle-arrow-bounce-h 1.4s ease-in-out infinite;
+  }
+  .preview-cell {
+    font-size: clamp(0.55rem, 60cqw, 1rem);
+  }
+  .puzzle-board {
+    max-width: min(70dvh, 280px);
+    padding: 5px;
+    gap: 3px;
+  }
+  .puzzle-piece {
+    font-size: clamp(1.1rem, 5dvh, 1.8rem);
+  }
+
+  /* MEMORY */
+  .memory-game {
+    gap: 6px;
+    flex: 1;
+    min-height: 0;
+    justify-content: center;
+  }
+  .memory-board {
+    max-width: min(75dvh, 280px);
+    gap: 5px;
+  }
+
+  /* PATTERNS */
+  .patterns-game {
+    gap: 8px;
+    flex: 1;
+    min-height: 0;
+    justify-content: center;
+  }
+  .pattern-row {
+    padding: 6px;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .pattern-item {
+    width: clamp(32px, 7.5dvh, 44px);
+    height: clamp(32px, 7.5dvh, 44px);
+    font-size: clamp(1.2rem, 5dvh, 1.8rem);
+    border-radius: 10px;
+  }
+  .pattern-choices { flex-shrink: 0; }
+  .pattern-choice-btn {
+    width: clamp(40px, 10dvh, 56px);
+    height: clamp(40px, 10dvh, 56px);
+    font-size: clamp(1.2rem, 5.5dvh, 1.8rem);
+    border-radius: 14px;
+  }
+  .pattern-progress { font-size: 0.85rem; }
+
+  /* 3D SHAPES */
+  .shapes3d-game { gap: 8px; }
+  .shapes3d-main { min-height: 0; }
+  .shapes3d-choices {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .shapes3d-choice {
+    aspect-ratio: 1;
+    padding: 4px;
+    max-height: 22dvh;
+  }
+
+  /* 3D TOWER */
+  .tower3d-game {
+    gap: 4px;
+    flex-direction: row;
+    align-items: stretch;
+  }
+  .tower3d-stage {
+    min-height: 0;
+    flex: 1 1 0;
+  }
+  .tower3d-target {
+    flex-direction: column;
+    padding: 4px;
+    gap: 2px;
+    max-height: 100%;
+    flex-shrink: 0;
+  }
+  .tower3d-target-slot {
+    width: clamp(24px, 7dvh, 34px);
+    height: clamp(24px, 7dvh, 34px);
+  }
+  .tower3d-shape-choices {
+    flex-direction: column;
+    grid-template-columns: 1fr;
+    grid-auto-rows: 1fr;
+    width: auto;
+    flex-shrink: 0;
+  }
+  .tower3d-choice {
+    width: clamp(48px, 12dvh, 64px);
+    height: clamp(48px, 12dvh, 64px);
+    aspect-ratio: auto;
+    padding: 4px;
+  }
+
+  /* CELEBRATION */
+  .celebration-container {
+    gap: 12px;
+    padding: 8px;
+  }
+  .celebration-burst { font-size: clamp(2.5rem, 16dvh, 4.5rem); }
+  .btn-next-round { width: 46px; height: 46px; font-size: 1.3rem; }
+  .btn-home-celebrate { width: 40px; height: 40px; font-size: 1rem; }
+}
+
+/* Very short landscape (folded phones, smaller screens) */
+@media (orientation: landscape) and (max-height: 380px) {
+  .game-grid { gap: 6px; }
+  .game-card {
+    border-radius: 14px;
+    padding: 6px 4px 4px;
+    height: min(78dvh, 100px);
+  }
+  .card-icon { font-size: clamp(1.4rem, 5.5dvh, 2rem); }
+  .card-stars { display: none; }
+  .mascot { font-size: clamp(1.6rem, 7dvh, 2.4rem); }
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+  .game-card,
+  .game-card::before,
+  .card-icon,
+  .mascot,
+  .mascot-container::before,
+  body {
+    animation: none !important;
+  }
 }
